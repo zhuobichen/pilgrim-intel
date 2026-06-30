@@ -31,7 +31,7 @@ if env_file.exists():
 
 
 async def cmd_run(args):
-    from pilgrim.engine import run_all_feeds, FeedRunner, PilgrimStore
+    from pilgrim.engine import run_all_feeds_consolidated, FeedRunner, PilgrimStore
     from pilgrim.config import get_config
 
     if args.feed:
@@ -46,7 +46,8 @@ async def cmd_run(args):
         store.close()
         print(f"\n🏁 {result.feed_id}: {len(result.items)} 新增, {result.duration_seconds:.1f}s")
     else:
-        await run_all_feeds()
+        # 默认：跑所有 feed，只发一封合并邮件 + 生成一个带标签页的 HTML 文件
+        await run_all_feeds_consolidated()
 
 
 def cmd_serve(args):
