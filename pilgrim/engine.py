@@ -422,7 +422,7 @@ class FeedRunner:
                               errors=";".join(errors) if errors else "",
                               duration=duration)
         self.log(f"DONE ({duration:.1f}s)")
-        return DigestResult(feed_id=self.feed.id, items=digest_target, ai_report=ai_report,
+        return DigestResult(feed_id=self.feed.id, items=all_items, ai_report=ai_report,
                             errors=errors, duration_seconds=duration)
 
     def _build_html_email(self, ai_report: str, items: List[ContentItem]) -> str:
@@ -721,16 +721,54 @@ def save_consolidated_html_file(html: str) -> str:
     return str(path)
 
 
-def send_consolidated_email(html: str, store_logger=None):
-    """发送单封合并邮件（包含所有 feed 的内容）。"""
+def _build_email_body(feed_results) -> str:
+    """移动端优先的邮件 HTML — 堆叠式无标签，所有内容直接可见。"""
+    today = datetime.now().strftime('%Y-%m-%d %A')
+    total = sum(len(items) for _, items, _ in feed_results)
+    sections = []
+    for feed, items, ai_report in feed_results:
+        meta = _FEED_TAB_META.get(feed.id, _DEFAULT_TAB_META)
+        items_html = ""
+        for item in items[:20]:
+            url = item.url or "#"
+            src = _escape_html(item.source)
+            items_html += (
+                f'<tr><td style="padding:6px 0;border-bottom:1px solid #eee">'
+                f'<a href="{url}" style="color:#1a73e8;font-weight:500;text-decoration:none;font-size:14px">{_escape_html(item.title)}</a>'
+                f'<br><span style="color:#999;font-size:11px">{src}</span></td></tr>'
+            )
+        digest = _markdown_to_html(ai_report)
+        sections.append(f"""
+<div style="margin:0 0 30px;background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+  <div style="border-left:4px solid {meta['color']};padding-left:12px;margin-bottom:14px">
+    <div style="font-size:18px;font-weight:700;color:{meta['color']}">{meta['icon']} {_escape_html(feed.name)}</div>
+    <div style="font-size:12px;color:#999">{_escape_html(meta['desc'])} · {len(items)} 条</div>
+  </div>
+  <div style="font-size:14px;color:#444;line-height:1.7;margin-bottom:16px;background:#f8f9fa;padding:14px 16px;border-radius:8px">{digest or '<p style="color:#999">暂无摘要</p>'}</div>
+  <table style="width:100%;border-collapse:collapse">{items_html}</table>
+</div>""")
+    return f"""<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pilgrim Intel / {today}</title></head>
+<body style="margin:0;padding:16px;background:#f0f2f5;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif">
+<div style="max-width:640px;margin:0 auto">
+  <div style="background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:16px;padding:24px;color:#fff;text-align:center;margin-bottom:20px">
+    <div style="font-size:22px;font-weight:800">Pilgrim Intel Daily</div>
+    <div style="font-size:13px;opacity:.85;margin-top:6px">{today} · {len(feed_results)} feeds · {total} items</div>
+  </div>
+  {"".join(sections)}
+  <div style="text-align:center;color:#aaa;font-size:11px;padding:20px">Powered by Pilgrim Intel 2.0</div>
+</div></body></html>"""
+
+
+def send_consolidated_email(feed_results, store_logger=None):
+    """发送移动优先的合并邮件（堆叠式，所有面板可见）。"""
     to_addr = os.getenv("EMAIL_TO", "")
     if not to_addr:
-        msg = "No EMAIL_TO configured, skip consolidated email"
-        print(msg)
-        if store_logger:
-            store_logger.log(msg)
+        _safe_print("No EMAIL_TO configured")
         return
-    subject = f"Pilgrim Intel 每日情报 · {datetime.now().strftime('%Y-%m-%d')}"
+    html = _build_email_body(feed_results)
+    subject = f"Pilgrim Intel {datetime.now().strftime('%Y-%m-%d')}"
     try:
         mime = MIMEMultipart("alternative")
         mime["Subject"] = subject
@@ -741,9 +779,9 @@ def send_consolidated_email(html: str, store_logger=None):
                               int(os.getenv("EMAIL_PORT", "465"))) as s:
             s.login(os.getenv("EMAIL_USER", ""), os.getenv("EMAIL_PASSWORD", ""))
             s.sendmail(mime["From"], [to_addr], mime.as_string())
-            _safe_print(f"Consolidated email sent to {to_addr}")
+        _safe_print(f"Consolidated email sent to {to_addr}")
     except Exception as e:
-            _safe_print(f"Consolidated email failed: {e}")
+        _safe_print(f"Consolidated email failed: {e}")
 
 
 # --- Batch Runner ---
@@ -792,17 +830,15 @@ async def run_all_feeds_consolidated(config_path: str = None):
         print("没有可用的 feed，退出。")
         return
 
-    # 构建合并 HTML
-    html = build_consolidated_html(feed_results)
-
-    # 保存 HTML 文件
+    # 构建 + 保存浏览器 HTML 文件（含 CSS 标签切换）
+    browser_html = build_consolidated_html(feed_results)
     try:
-        html_path = save_consolidated_html_file(html)
+        html_path = save_consolidated_html_file(browser_html)
         _safe_print(f"HTML saved: {html_path}")
     except Exception as e:
         _safe_print(f"HTML save failed: {e}")
 
-    # 发送单封合并邮件
-    send_consolidated_email(html)
+    # 发送移动优先邮件（堆叠式，无标签）
+    send_consolidated_email(feed_results)
 
     _safe_print("Consolidated push done (1 email + 1 HTML).")
