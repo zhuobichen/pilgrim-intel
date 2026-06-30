@@ -1,0 +1,11 @@
+# Pilgrim Intel — Unified AI News Pipeline
+# Core
+openai>=1.0.0
+httpx>=0.27.0
+aiohttp>=3.9.0
+pyyaml>=6.0
+feedparser>=6.0.0
+
+# Optional: for advanced NLP (uncomment to enable)
+# langdetect>=1.0.9
+# sentence-transformers>=2.7.0  # for semantic search embeddings

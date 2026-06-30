@@ -1,0 +1,297 @@
+# ═══════════════════════════════════════════════════════════
+#  Pilgrim Intel — Unified Feed Configuration
+# ═══════════════════════════════════════════════════════════
+
+feeds:
+
+  # ── Abstract Culture Daily ──────────────────────────
+  - id: abstract-culture
+    name: 抽象文化日报
+    description: 15+ 平台热点 → LLM 文化分析 → 邮件推送
+    lang: zh
+    schedule: "daily 18:30"
+    enabled: true
+    llm:
+      model: deepseek-chat
+      api_key_env: DEEPSEEK_API_KEY
+      api_base: https://api.deepseek.com
+      temperature: 0.85
+      max_tokens: 4000
+    push:
+      email: true
+      email_to: "${EMAIL_TO}"
+    prompt_template: |
+      你是一位文化评论家，擅长从热点新闻中提炼"抽象文化"现象。请根据今天收集的各大平台热点，生成一份中文日报。
+
+      要求：
+      1. 选出今日最值得关注的 5-8 个热点，每个 2-3 句话概括
+      2. 分析这些热点背后反映的社会/文化趋势（至少 2 个角度）
+      3. 用幽默犀利的语言风格，但保持客观
+      4. 分板块呈现：🔥 今日焦点 / 🌍 国际视角 / 💻 科技前沿 / 🎭 抽象观察
+
+      今日热点列表（共 {{COUNT}} 条）：
+      {{CONTEXT}}
+
+      请直接输出 Markdown 格式的日报。
+    sources:
+      # 核心社交
+      - id: weibo
+        name: 微博
+        type: hotlist
+        url: "https://weibo.com/ajax/side/hotSearch"
+      - id: bilibili
+        name: B站热搜
+        type: hotlist
+        url: "https://api.bilibili.com/x/web-interface/ranking/v2?rid=0"
+      - id: zhihu
+        name: 知乎
+        type: hotlist
+        url: "https://www.zhihu.com/api/v3/feed/topstory/hot-lists/total?limit=20"
+      # 综合资讯
+      - id: baidu
+        name: 百度热搜
+        type: hotlist
+        url: "https://top.baidu.com/board?tab=realtime"
+      - id: toutiao
+        name: 今日头条
+        type: hotlist
+        url: "https://www.toutiao.com/hot-event/hot-board/?origin=toutiao_pc"
+      # 科技
+      - id: 36kr
+        name: 36氪
+        type: hotlist
+        url: "https://36kr.com/api/newsflash"
+      - id: ithome
+        name: IT之家
+        type: rss
+        url: "https://www.ithome.com/rss/"
+      - id: hackernews
+        name: HackerNews
+        type: hotlist
+        url: "https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=20"
+      # 🌍 国际
+      - id: bbc
+        name: BBC
+        type: rss
+        url: "https://feeds.bbci.co.uk/news/world/rss.xml"
+      - id: reuters
+        name: Reuters
+        type: hotlist
+        url: "https://www.reuters.com/pf/api/v3/content/fetch/articles-by-section-alias-or-id-v1?query=%7B%22section_id%22%3A%22%2Fworld%2F%22%2C%22size%22%3A15%2C%22website%22%3A%22reuters%22%7D"
+      - id: googlenews
+        name: GoogleNews
+        type: rss
+        url: "https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en"
+      - id: techcrunch
+        name: TechCrunch
+        type: hotlist
+        url: "https://techcrunch.com/wp-json/wp/v2/posts?per_page=15&_fields=title,link"
+      - id: theverge
+        name: TheVerge
+        type: rss
+        url: "https://www.theverge.com/rss/index.xml"
+      - id: arstechnica
+        name: ArsTechnica
+        type: rss
+        url: "https://feeds.arstechnica.com/arstechnica/index"
+      - id: producthunt
+        name: ProductHunt
+        type: api
+        url: "https://api.producthunt.com/v1/posts?per_page=15"
+      - id: devto
+        name: DEV.to
+        type: hotlist
+        url: "https://dev.to/api/articles?per_page=15&top=1"
+
+  # ── TrendRadar News ────────────────────────────────
+  - id: trendradar
+    name: TrendRadar 热点聚合
+    description: 热榜+RSS → 邮件推送
+    lang: zh
+    schedule: "daily 18:32"
+    enabled: true
+    llm:
+      model: deepseek-chat
+      api_key_env: DEEPSEEK_API_KEY
+      api_base: https://api.deepseek.com
+      temperature: 0.5
+      max_tokens: 4000
+    push:
+      email: true
+      email_to: "${EMAIL_TO}"
+    prompt_template: |
+      你是一位资深新闻编辑。根据今天收集的热点数据，生成一份结构化的中文新闻简报。
+
+      要求：
+      1. 按重要度排序，选出 Top 10 新闻
+      2. 每条包含：标题、一句话摘要、新闻来源
+      3. 最后附一段 100 字以内的"编辑点评"
+
+      今日热点（共 {{COUNT}} 条）：
+      {{CONTEXT}}
+    sources:
+      - id: toutiao
+        name: 今日头条
+        type: hotlist
+        url: "https://www.toutiao.com/hot-event/hot-board/?origin=toutiao_pc"
+      - id: baidu
+        name: 百度热搜
+        type: hotlist
+        url: "https://top.baidu.com/board?tab=realtime"
+      - id: weibo
+        name: 微博
+        type: hotlist
+        url: "https://weibo.com/ajax/side/hotSearch"
+      - id: hackernews
+        name: Hacker News
+        type: rss
+        url: "https://hnrss.org/frontpage"
+      - id: bbc
+        name: BBC World
+        type: rss
+        url: "https://feeds.bbci.co.uk/news/world/rss.xml"
+      - id: techcrunch
+        name: TechCrunch
+        type: rss
+        url: "https://techcrunch.com/feed/"
+      - id: theverge
+        name: The Verge
+        type: rss
+        url: "https://www.theverge.com/rss/index.xml"
+      - id: wired
+        name: WIRED
+        type: rss
+        url: "https://www.wired.com/feed/rss"
+
+  # ── GameHub Daily ──────────────────────────────────
+  - id: gamehub
+    name: GameHub 游戏日报
+    description: 22 游戏信源 → DeepSeek 精选 → 邮件推送
+    lang: zh
+    schedule: "daily 18:34"
+    enabled: true
+    llm:
+      model: deepseek-chat
+      api_key_env: DEEPSEEK_API_KEY
+      api_base: https://api.deepseek.com
+      temperature: 0.6
+      max_tokens: 3500
+    push:
+      email: true
+      email_to: "${EMAIL_TO}"
+    prompt_template: |
+      你是一位资深游戏编辑。根据今天收集的游戏资讯，生成一份中文游戏日报。
+
+      要求：
+      1. 选出最值得关注的 10 条游戏新闻
+      2. 每条 1-2 句话摘要 + 来源标注
+      3. 按热度排序
+      4. 如果有重磅消息（新作发布/重大更新/行业大事），放在最前面加 🔥 标记
+
+      今日游戏资讯（共 {{COUNT}} 条）：
+      {{CONTEXT}}
+    sources:
+      - id: yystv
+        name: 游研社
+        type: rss
+        url: "https://www.yystv.cn/rss/feed"
+      - id: gcores
+        name: 机核
+        type: rss
+        url: "https://www.gcores.com/rss"
+      - id: eurogamer
+        name: Eurogamer
+        type: rss
+        url: "https://www.eurogamer.net/feed"
+      - id: pcgamer
+        name: PCGamer
+        type: rss
+        url: "https://www.pcgamer.com/rss/"
+      - id: rockpapershotgun
+        name: RockPaperShotgun
+        type: rss
+        url: "https://www.rockpapershotgun.com/feed"
+      - id: vg247
+        name: VG247
+        type: rss
+        url: "https://www.vg247.com/feed"
+      - id: gamespot
+        name: GameSpot
+        type: rss
+        url: "https://www.gamespot.com/feeds/mashup/"
+      - id: ign
+        name: IGN
+        type: rss
+        url: "https://feeds.feedburner.com/ign/all"
+      - id: polygon
+        name: Polygon
+        type: rss
+        url: "https://www.polygon.com/rss/index.xml"
+      - id: gematsu
+        name: Gematsu
+        type: rss
+        url: "https://www.gematsu.com/feed"
+      - id: nintendolife
+        name: NintendoLife
+        type: rss
+        url: "https://www.nintendolife.com/feeds/latest"
+      - id: kotaku
+        name: Kotaku
+        type: rss
+        url: "https://kotaku.com/rss"
+
+  # ── Horizon AI News ────────────────────────────────
+  - id: horizon
+    name: Horizon AI 新闻雷达
+    description: HackerNews + RSS → 中英双语日报
+    lang: zh
+    schedule: "daily 18:36"
+    enabled: true
+    llm:
+      model: deepseek-chat
+      api_key_env: DEEPSEEK_API_KEY
+      api_base: https://api.deepseek.com
+      temperature: 0.3
+      max_tokens: 5000
+    push:
+      email: true
+      email_to: "${EMAIL_TO}"
+    prompt_template: |
+      你是一位技术编辑。根据今天收集的科技新闻，生成一份中英双语的技术日报。
+
+      要求：
+      1. 选出 Top 10 技术新闻，每条提供中英文双语摘要
+      2. 重点关注：AI/ML、开源项目、开发者工具、科技公司动态
+      3. 用简洁专业的技术写作风格
+
+      今日技术新闻（共 {{COUNT}} 条）：
+      {{CONTEXT}}
+    sources:
+      - id: hackernews
+        name: Hacker News
+        type: hotlist
+        url: "https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=20"
+      - id: devto
+        name: DEV.to
+        type: hotlist
+        url: "https://dev.to/api/articles?per_page=20&top=1"
+      - id: techcrunch
+        name: TechCrunch
+        type: rss
+        url: "https://techcrunch.com/feed/"
+      - id: theverge
+        name: The Verge
+        type: rss
+        url: "https://www.theverge.com/rss/index.xml"
+      - id: arstechnica
+        name: Ars Technica
+        type: rss
+        url: "https://feeds.arstechnica.com/arstechnica/index"
+      - id: producthunt
+        name: ProductHunt
+        type: rss
+        url: "https://www.producthunt.com/feed"
+      - id: githubtrending
+        name: GitHubTrending
+        type: rss
+        url: "https://rss.best/github"
