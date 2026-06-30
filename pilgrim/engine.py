@@ -30,6 +30,13 @@ LOG_DIR.mkdir(exist_ok=True)
 def _safe(msg: str) -> str:
     return msg.encode('gbk', errors='replace').decode('gbk', errors='replace')
 
+def _safe_print(msg: str):
+    """Print safely on Windows GBK terminals."""
+    try:
+        print(msg)
+    except UnicodeEncodeError:
+        print(msg.encode('ascii', errors='replace').decode('ascii'))
+
 
 class FeedRunner:
     """Runs one feed end-to-end: fetch sources -> dedup -> AI digest -> push."""
@@ -636,9 +643,9 @@ def send_consolidated_email(html: str, store_logger=None):
                               int(os.getenv("EMAIL_PORT", "465"))) as s:
             s.login(os.getenv("EMAIL_USER", ""), os.getenv("EMAIL_PASSWORD", ""))
             s.sendmail(mime["From"], [to_addr], mime.as_string())
-        print(f"✅ 合并邮件已发送至 {to_addr}")
+            _safe_print(f"Consolidated email sent to {to_addr}")
     except Exception as e:
-        print(f"❌ 合并邮件发送失败: {e}")
+            _safe_print(f"Consolidated email failed: {e}")
 
 
 # --- Batch Runner ---
@@ -653,7 +660,7 @@ async def run_all_feeds(config_path: str = None):
         except Exception as e:
             print(f"ERROR {feed.id}: {e}")
     store.close()
-    print("\nAll feeds done.")
+    _safe_print("All feeds done.")
 
 
 async def run_all_feeds_consolidated(config_path: str = None):
@@ -693,11 +700,11 @@ async def run_all_feeds_consolidated(config_path: str = None):
     # 保存 HTML 文件
     try:
         html_path = save_consolidated_html_file(html)
-        print(f"📄 HTML 报告已保存: {html_path}")
+        _safe_print(f"HTML saved: {html_path}")
     except Exception as e:
-        print(f"⚠️ HTML 文件保存失败: {e}")
+        _safe_print(f"HTML save failed: {e}")
 
     # 发送单封合并邮件
     send_consolidated_email(html)
 
-    print("\n✅ 合并推送完成（1 封邮件 + 1 个 HTML 文件）。")
+    _safe_print("Consolidated push done (1 email + 1 HTML).")
