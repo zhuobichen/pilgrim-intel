@@ -142,8 +142,163 @@ class FeedRunner:
             self.log(f"JSON {src.name}: {type(e).__name__}")
         return items
 
+    # --- Platform-specific fetchers (CN sites need special handling) ---
+
+    async def _fetch_weibo(self, src) -> List[ContentItem]:
+        items = []
+        try:
+            async with httpx.AsyncClient(timeout=15, follow_redirects=True) as c:
+                r = await c.get(src.url, headers={
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                    "Referer": "https://weibo.com/hot/search",
+                    "Accept": "application/json, text/plain, */*",
+                })
+                if r.status_code != 200:
+                    return items
+                data = r.json()
+                for item in data.get("data", {}).get("realtime", []):
+                    if item.get("is_ad") == 1:
+                        continue
+                    w = item.get("word", "")
+                    if w:
+                        items.append(ContentItem(
+                            title=w, url=f"https://s.weibo.com/weibo?q={w}",
+                            source=src.name, feed_id=self.feed.id,
+                            heat=str(item.get("raw_hot", ""))
+                        ))
+        except Exception as e:
+            self.log(f"Weibo: {type(e).__name__}")
+        return items[:20]
+
+    async def _fetch_baidu_hot(self, src) -> List[ContentItem]:
+        items = []
+        import re as _re
+        try:
+            async with httpx.AsyncClient(timeout=15, follow_redirects=True,
+                                         headers={"User-Agent": "Mozilla/5.0"}) as c:
+                r = await c.get(src.url)
+                text = r.text
+                m = _re.search(r"<!--s-data:(.+?)-->", text, _re.DOTALL)
+                if not m:
+                    return items
+                data = json.loads(m.group(1))
+                cards = data.get("data", {}).get("cards", [])
+                for card in cards:
+                    for entry in card.get("content", [])[:25]:
+                        t = entry.get("word") or entry.get("query", "")
+                        if t:
+                            items.append(ContentItem(
+                                title=t, url=entry.get("url", ""),
+                                source=src.name, feed_id=self.feed.id,
+                                heat=str(entry.get("hotScore", ""))
+                            ))
+        except Exception as e:
+            self.log(f"Baidu: {type(e).__name__}")
+        return items[:20]
+
+    async def _fetch_zhihu_hot(self, src) -> List[ContentItem]:
+        items = []
+        import re as _re
+        try:
+            async with httpx.AsyncClient(timeout=15, follow_redirects=True,
+                                         headers={"User-Agent": "Mozilla/5.0", "Accept": "text/html"}) as c:
+                r = await c.get("https://www.zhihu.com/hot")
+                text = r.text
+                m = _re.search(r'<script id="js-initialData" type="text/json">(.+?)</script>', text)
+                if not m:
+                    return items
+                data = json.loads(m.group(1))
+                hot_list = data.get("initialState", {}).get("topstory", {}).get("hotList", [])
+                for item in hot_list:
+                    target = item.get("target", {})
+                    if not isinstance(target, dict):
+                        target = {}
+                    title = ""
+                    ta = target.get("titleArea", {})
+                    if isinstance(ta, dict):
+                        title = ta.get("text", "")
+                    if not title:
+                        title = target.get("title", "")
+                    url = ""
+                    lk = target.get("link", {})
+                    if isinstance(lk, dict):
+                        url = lk.get("url", "")
+                    if not url:
+                        url = target.get("url", "")
+                    heat = ""
+                    ma = item.get("metricsArea", {})
+                    if isinstance(ma, dict):
+                        heat = ma.get("text", "")
+                    if title:
+                        items.append(ContentItem(
+                            title=title, url=url, source=src.name,
+                            feed_id=self.feed.id, heat=str(heat)
+                        ))
+        except Exception as e:
+            self.log(f"Zhihu: {type(e).__name__}")
+        return items[:20]
+
+    async def _fetch_toutiao(self, src) -> List[ContentItem]:
+        items = []
+        import re as _re
+        try:
+            async with httpx.AsyncClient(timeout=15, follow_redirects=True,
+                                         headers={
+                                             "User-Agent": "Mozilla/5.0",
+                                             "Referer": "https://www.toutiao.com/",
+                                         }) as c:
+                r = await c.get(src.url)
+                text = r.text
+                titles = _re.findall(r'"Title":"([^"]*)"', text)
+                hots = _re.findall(r'"HotValue":(\d+)', text)
+                for i, t in enumerate(titles[:20]):
+                    if t:
+                        items.append(ContentItem(
+                            title=t, url="",
+                            source=src.name, feed_id=self.feed.id,
+                            heat=hots[i] if i < len(hots) else ""
+                        ))
+        except Exception as e:
+            self.log(f"Toutiao: {type(e).__name__}")
+        return items[:20]
+
+    async def _fetch_bilibili(self, src) -> List[ContentItem]:
+        items = []
+        try:
+            async with httpx.AsyncClient(timeout=15, follow_redirects=True,
+                                         headers={"User-Agent": "Mozilla/5.0", "Referer": "https://www.bilibili.com/"}) as c:
+                r = await c.get(src.url)
+                data = r.json()
+                entries = data.get("data", {}).get("list", [])
+                if not entries:
+                    entries = data.get("data", [])
+                for e in entries[:20]:
+                    t = e.get("title", "")
+                    if t:
+                        items.append(ContentItem(
+                            title=t,
+                            url=f"https://www.bilibili.com/video/{e.get('bvid','')}",
+                            source=src.name, feed_id=self.feed.id,
+                            heat=str(e.get("pts") or e.get("play", ""))
+                        ))
+        except Exception as e:
+            self.log(f"Bilibili: {type(e).__name__}")
+        return items[:20]
+
     async def fetch_source(self, src) -> List[ContentItem]:
-        if src.type == "rss":
+        # Platform-specific fetch for Chinese sites
+        pid = src.id.lower()
+        if pid == "weibo":
+            return await self._fetch_weibo(src)
+        elif pid in ("baidu", "baidu_hot"):
+            return await self._fetch_baidu_hot(src)
+        elif pid == "zhihu":
+            return await self._fetch_zhihu_hot(src)
+        elif pid == "toutiao":
+            return await self._fetch_toutiao(src)
+        elif pid == "bilibili":
+            return await self._fetch_bilibili(src)
+        elif src.type == "rss":
             return await self._fetch_rss(src)
         elif src.type in ("hotlist", "api"):
             return await self._fetch_json(src)
@@ -267,7 +422,7 @@ class FeedRunner:
                               errors=";".join(errors) if errors else "",
                               duration=duration)
         self.log(f"DONE ({duration:.1f}s)")
-        return DigestResult(feed_id=self.feed.id, items=new_items, ai_report=ai_report,
+        return DigestResult(feed_id=self.feed.id, items=digest_target, ai_report=ai_report,
                             errors=errors, duration_seconds=duration)
 
     def _build_html_email(self, ai_report: str, items: List[ContentItem]) -> str:
