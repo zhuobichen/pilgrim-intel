@@ -9,6 +9,9 @@ from fetcher import (
     ZhihuFetcher, WeiboFetcher, BilibiliFetcher, TiebaFetcher, GitHubFetcher, DouyinFetcher,
     RedditFetcher, BaiduHotFetcher, ToutiaoFetcher, Kr36Fetcher, ThePaperFetcher,
     WallStreetCNFetcher, ITHomeFetcher, SSPaiFetcher, HackerNewsFetcher,
+    TechCrunchFetcher, TheVergeFetcher, BBCNewsFetcher,
+    ReutersFetcher, ProductHuntFetcher, DevToFetcher,
+    GoogleNewsFetcher, ArsTechnicaFetcher,
 )
 from analyzer import LLMAnalyzer
 from pusher import push_to_serverchan, push_to_bark, push_to_telegram, push_to_dingtalk, push_to_email
@@ -45,10 +48,19 @@ class HotTopicTracker:
             'IT之家': ITHomeFetcher(self.timeout),
             '少数派': SSPaiFetcher(self.timeout),
             'HackerNews': HackerNewsFetcher(self.timeout),
-            # 社区/论坛（需要代理时可能失败，不影响整体）
+            # 社区/论坛
             '贴吧': TiebaFetcher(self.timeout),
             'GitHub': GitHubFetcher(self.timeout),
             'Reddit': RedditFetcher(self.timeout),
+            # 🌍 国外信源
+            'TechCrunch': TechCrunchFetcher(self.timeout),
+            'TheVerge': TheVergeFetcher(self.timeout),
+            'BBC': BBCNewsFetcher(self.timeout),
+            'Reuters': ReutersFetcher(self.timeout),
+            'ProductHunt': ProductHuntFetcher(self.timeout),
+            'DEV.to': DevToFetcher(self.timeout),
+            'GoogleNews': GoogleNewsFetcher(self.timeout),
+            'ArsTechnica': ArsTechnicaFetcher(self.timeout),
         }
 
         results = {}

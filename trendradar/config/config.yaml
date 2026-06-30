@@ -120,6 +120,39 @@ rss:
       url: "https://finance.yahoo.com/news/rssindex"
       enabled: false                  # Yahoo RSS 已废弃(403)，暂时禁用
 
+    # 🌍 国际 RSS 信源
+    - id: "reuters-world"
+      name: "Reuters World"
+      url: "https://www.rss-bridge.org/bridge01/?action=display&bridge=FilterBridge&url=https%3A%2F%2Fwww.reuters.com%2Fworld%2F&content_filter=reuters.com%2Fworld&content_filter_type=permit&format=Atom"
+
+    - id: "bbc-world"
+      name: "BBC News World"
+      url: "https://feeds.bbci.co.uk/news/world/rss.xml"
+
+    - id: "techcrunch"
+      name: "TechCrunch"
+      url: "https://techcrunch.com/feed/"
+
+    - id: "theverge"
+      name: "The Verge"
+      url: "https://www.theverge.com/rss/index.xml"
+
+    - id: "arstechnica"
+      name: "Ars Technica"
+      url: "https://feeds.arstechnica.com/arstechnica/index"
+
+    - id: "wired"
+      name: "WIRED"
+      url: "https://www.wired.com/feed/rss"
+
+    - id: "dev-to"
+      name: "DEV.to Top"
+      url: "https://dev.to/feed"
+
+    - id: "producthunt"
+      name: "Product Hunt"
+      url: "https://www.producthunt.com/feed
+
     # 自定义源示例
     # - id: "custom-feed"
     #   name: "自定义源"

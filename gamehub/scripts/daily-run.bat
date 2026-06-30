@@ -1,14 +1,12 @@
 @echo off
-REM GameHub Daily Digest Runner
+REM GameHub Daily Digest Runner — pilgrim-intel edition
+REM 15 游戏信源 → DeepSeek 精选 → 邮件推送
 
 set PYTHONIOENCODING=utf-8
 set PYTHONUTF8=1
 
-cd /d E:\CodeProject\GameHub\cli
+cd /d E:\CodeProject\pilgrim-intel\gamehub
 
-REM Load .env
-for /f "tokens=1,2 delims==" %%a in (.env) do set %%a=%%b
-
-echo [%date% %time%] GameHub daily digest started >> %USERPROFILE%\.gamehub\cron.log
-python daily_digest.py >> %USERPROFILE%\.gamehub\cron.log 2>&1
-echo [%date% %time%] GameHub daily digest completed >> %USERPROFILE%\.gamehub\cron.log
+echo [%date% %time%] GameHub started >> E:\CodeProject\pilgrim-intel\logs\gamehub.log
+python daily_digest.py >> E:\CodeProject\pilgrim-intel\logs\gamehub.log 2>&1
+echo [%date% %time%] GameHub completed >> E:\CodeProject\pilgrim-intel\logs\gamehub.log

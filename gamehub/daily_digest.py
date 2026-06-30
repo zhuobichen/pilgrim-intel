@@ -251,6 +251,14 @@ RSS_FEEDS = [
     ("GameSpot", "https://www.gamespot.com/feeds/mashup/"),
     ("TouchArcade", "https://toucharcade.com/feed/"),
     ("GameInformer", "https://www.gameinformer.com/rss.xml"),
+    # 🌍 新增国外游戏信源
+    ("IGN", "https://feeds.feedburner.com/ign/all"),
+    ("Polygon", "https://www.polygon.com/rss/index.xml"),
+    ("Gematsu", "https://www.gematsu.com/feed"),
+    ("NintendoLife", "https://www.nintendolife.com/feeds/latest"),
+    ("PushSquare", "https://www.pushsquare.com/feeds/latest"),
+    ("XboxEra", "https://xboxera.com/feed/"),
+    ("Kotaku", "https://kotaku.com/rss"),
 ]
 
 

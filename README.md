@@ -16,10 +16,16 @@ pilgrim-intel/
 
 | 项目 | 信源数 | 输出 |
 |---|---|---|
-| abstract-culture | ~15 | 文化分析日报 Markdown + 邮件 |
-| trendradar | ~20+ | HTML 报告 + 多平台推送 |
-| gamehub | 15 | 游戏资讯日报 + 邮件 |
+| abstract-culture | ~23 | 文化分析日报 Markdown + 邮件 |
+| trendradar | ~25+ | HTML 报告 + 多平台推送 |
+| gamehub | 22 | 游戏资讯日报 + 邮件 |
 | horizon | HackerNews + RSS | 中英双语日报 + GitHub Pages |
+
+### 🌍 国际信源
+
+- **新闻**: BBC、Reuters、GoogleNews、TechCrunch、TheVerge、ArsTechnica、WIRED
+- **科技**: HackerNews、DEV.to、ProductHunt
+- **游戏**: IGN、Polygon、Gematsu、NintendoLife、PushSquare、XboxEra、Kotaku
 
 ## 🚀 快速开始
 
