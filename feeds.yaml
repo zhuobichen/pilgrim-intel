@@ -69,19 +69,15 @@ feeds:
         name: HackerNews
         type: hotlist
         url: "https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=20"
-      # 🌍 国际
-      - id: bbc
-        name: BBC
+      # 🌍 国际 — RSS（部分被墙已标注）
+      - id: npr
+        name: NPR
         type: rss
-        url: "https://feeds.bbci.co.uk/news/world/rss.xml"
-      - id: reuters
-        name: Reuters
-        type: hotlist
-        url: "https://www.reuters.com/pf/api/v3/content/fetch/articles-by-section-alias-or-id-v1?query=%7B%22section_id%22%3A%22%2Fworld%2F%22%2C%22size%22%3A15%2C%22website%22%3A%22reuters%22%7D"
-      - id: googlenews
-        name: GoogleNews
+        url: "https://feeds.npr.org/1001/rss.xml"
+      - id: france24
+        name: France24
         type: rss
-        url: "https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en"
+        url: "https://www.france24.com/en/rss"
       - id: techcrunch
         name: TechCrunch
         type: hotlist
@@ -94,6 +90,26 @@ feeds:
         name: ArsTechnica
         type: rss
         url: "https://feeds.arstechnica.com/arstechnica/index"
+      - id: wired
+        name: WIRED
+        type: rss
+        url: "https://www.wired.com/feed/rss"
+      - id: engadget
+        name: Engadget
+        type: rss
+        url: "https://www.engadget.com/rss.xml"
+      - id: techreview
+        name: MIT TechReview
+        type: rss
+        url: "https://www.technologyreview.com/feed/"
+      - id: sciencedaily
+        name: ScienceDaily
+        type: rss
+        url: "https://www.sciencedaily.com/rss/all.xml"
+      - id: nature
+        name: Nature News
+        type: rss
+        url: "https://www.nature.com/nature.rss"
       - id: producthunt
         name: ProductHunt
         type: api
@@ -102,6 +118,17 @@ feeds:
         name: DEV.to
         type: hotlist
         url: "https://dev.to/api/articles?per_page=15&top=1"
+      # RSSHub 代理（rsshub.app 超时，rsshub.rssforever.com 备用）
+      - id: reuters-rsshub
+        name: Reuters
+        type: rss
+        url: "https://rsshub.rssforever.com/reuters/world"
+        enabled: false
+      - id: ap-rsshub
+        name: AP News
+        type: rss
+        url: "https://rsshub.rssforever.com/apnews/topics/apf-topnews"
+        enabled: false
 
   # ── TrendRadar News ────────────────────────────────
   - id: trendradar
@@ -142,14 +169,11 @@ feeds:
         name: 微博
         type: hotlist
         url: "https://weibo.com/ajax/side/hotSearch"
+      # RSS 国际
       - id: hackernews
         name: Hacker News
-        type: rss
-        url: "https://hnrss.org/frontpage"
-      - id: bbc
-        name: BBC World
-        type: rss
-        url: "https://feeds.bbci.co.uk/news/world/rss.xml"
+        type: hotlist
+        url: "https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=20"
       - id: techcrunch
         name: TechCrunch
         type: rss
@@ -162,6 +186,29 @@ feeds:
         name: WIRED
         type: rss
         url: "https://www.wired.com/feed/rss"
+      - id: npr
+        name: NPR
+        type: rss
+        url: "https://feeds.npr.org/1001/rss.xml"
+      - id: france24
+        name: France24
+        type: rss
+        url: "https://www.france24.com/en/rss"
+      - id: apnews
+        name: AP News
+        type: rss
+        url: "https://rsshub.rssforever.com/apnews/topics/apf-topnews"
+        enabled: false
+      - id: guardian
+        name: The Guardian
+        type: rss
+        url: "https://www.theguardian.com/world/rss"
+        enabled: false
+      - id: dw
+        name: DW
+        type: rss
+        url: "https://rss.dw.com/rdf/rss-en-all"
+        enabled: false
 
   # ── GameHub Daily ──────────────────────────────────
   - id: gamehub
@@ -239,6 +286,22 @@ feeds:
         name: Kotaku
         type: rss
         url: "https://kotaku.com/rss"
+      - id: destructoid
+        name: Destructoid
+        type: rss
+        url: "https://www.destructoid.com/feed/"
+      - id: siliconera
+        name: Siliconera
+        type: rss
+        url: "https://www.siliconera.com/feed/"
+      - id: rpgsite
+        name: RPGSite
+        type: rss
+        url: "https://www.rpgsite.net/feed"
+      - id: dualshockers
+        name: DualShockers
+        type: rss
+        url: "https://www.dualshockers.com/feed/"
 
   # ── Horizon AI News ────────────────────────────────
   - id: horizon
@@ -289,9 +352,33 @@ feeds:
         url: "https://feeds.arstechnica.com/arstechnica/index"
       - id: producthunt
         name: ProductHunt
-        type: rss
-        url: "https://www.producthunt.com/feed"
+        type: api
+        url: "https://api.producthunt.com/v1/posts?per_page=15"
       - id: githubtrending
         name: GitHubTrending
+        type: hotlist
+        url: "https://api.github.com/search/repositories?q=stars:%3E500+pushed:%3E2024-01-01&sort=stars&order=desc&per_page=15"
+      - id: nature
+        name: Nature
         type: rss
-        url: "https://rss.best/github"
+        url: "https://www.nature.com/nature.rss"
+      - id: techreview
+        name: MIT TechReview
+        type: rss
+        url: "https://www.technologyreview.com/feed/"
+      - id: sciencedaily
+        name: ScienceDaily
+        type: rss
+        url: "https://www.sciencedaily.com/rss/all.xml"
+      - id: engadget
+        name: Engadget
+        type: rss
+        url: "https://www.engadget.com/rss.xml"
+      - id: thenextweb
+        name: TNW
+        type: rss
+        url: "https://thenextweb.com/feed"
+      - id: wired
+        name: WIRED
+        type: rss
+        url: "https://www.wired.com/feed/rss"
