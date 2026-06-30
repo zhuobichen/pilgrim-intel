@@ -1,7 +1,7 @@
-# Pilgrim Intel v2.1 — 60+ 信源 · 深度AI日报
+# Pilgrim Intel v2.2 — 零重叠 · 四角色日报
 feeds:
 
-  # ── 综合日报 ──────────────────────────────────────
+  # ── 🎭 综合日报：国内社会文化 ────────────────────
   - id: abstract-culture
     name: 综合日报
     llm: {model: deepseek-chat, api_key_env: DEEPSEEK_API_KEY, api_base: "https://api.deepseek.com", temperature: 0.85, max_tokens: 8000}
@@ -9,15 +9,13 @@ feeds:
     schedule: "daily 18:30"
     enabled: true
     prompt_template: |
-      你是资深新闻主编，根据以下 {{COUNT}} 条来自全球多平台的当日热点，制作一份全面深入的中文日报。每个板块至少写 300 字，要有实质内容而非简单罗列标题。
+      你是国内社会文化观察家。根据以下 {{COUNT}} 条中文互联网热点，撰写一份有深度的中文日报。只基于提供的内容进行分析，不要编造。
 
-      🔥 今日焦点（5-8条深度解读，每条含核心事实+背景+各方影响）
-      🌍 国际要闻（按亚太/欧洲/美洲/中东分区，政治/经济/外交要事）
-      💻 科技前沿（AI进展、开源项目、公司动态、学术突破，要有技术解释）
-      📊 趋势洞察（2-3个跨领域宏观趋势，分析驱动力和走向）
-      🎭 文化观察（社交媒体热议、互联网亚文化现象）
+      🔥 今日焦点（5-8条：每条含核心事件+关键背景+各方反应）
+      📊 趋势洞察（从今日热点提炼2-3个社会/文化趋势，分析驱动力和走向）
+      🎭 互联网现象（社交媒体热议、亚文化现象、网友态度，轻松解读但不失洞察）
 
-      格式 Markdown，板块间用 --- 分隔。
+      格式 Markdown，板块间用 --- 分隔。每板块至少 300 字。
 
       {{CONTEXT}}
     sources:
@@ -28,63 +26,38 @@ feeds:
       - {id: toutiao, name: 头条, type: hotlist, url: "https://www.toutiao.com/hot-event/hot-board/?origin=toutiao_pc"}
       - {id: 36kr, name: 36氪, type: hotlist, url: "https://36kr.com/api/newsflash"}
       - {id: ithome, name: IT之家, type: rss, url: "https://www.ithome.com/rss/"}
-      - {id: hackernews, name: HN, type: hotlist, url: "https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=20"}
-      - {id: npr, name: NPR, type: rss, url: "https://feeds.npr.org/1001/rss.xml"}
-      - {id: france24, name: France24, type: rss, url: "https://www.france24.com/en/rss"}
-      - {id: cbs, name: CBS, type: rss, url: "https://www.cbsnews.com/latest/rss/main"}
-      - {id: abcnews, name: ABC, type: rss, url: "https://abcnews.go.com/abcnews/topstories"}
-      - {id: politico, name: Politico, type: rss, url: "https://rss.politico.com/politics-news.xml"}
-      - {id: cnbc, name: CNBC, type: rss, url: "https://www.cnbc.com/id/19854910/device/rss/rss.html"}
-      - {id: techcrunch, name: TechCrunch, type: hotlist, url: "https://techcrunch.com/wp-json/wp/v2/posts?per_page=15&_fields=title,link"}
-      - {id: theverge, name: TheVerge, type: rss, url: "https://www.theverge.com/rss/index.xml"}
-      - {id: arstechnica, name: Ars, type: rss, url: "https://feeds.arstechnica.com/arstechnica/index"}
-      - {id: wired, name: WIRED, type: rss, url: "https://www.wired.com/feed/rss"}
-      - {id: engadget, name: Engadget, type: rss, url: "https://www.engadget.com/rss.xml"}
-      - {id: techreview, name: MIT Tech, type: rss, url: "https://www.technologyreview.com/feed/"}
-      - {id: sciencedaily, name: Science, type: rss, url: "https://www.sciencedaily.com/rss/all.xml"}
-      - {id: nature, name: Nature, type: rss, url: "https://www.nature.com/nature.rss"}
-      - {id: zdnet, name: ZDNet, type: rss, url: "https://www.zdnet.com/news/rss.xml"}
-      - {id: mashable, name: Mashable, type: rss, url: "https://mashable.com/feed"}
-      - {id: physorg, name: Phys.org, type: rss, url: "https://phys.org/rss-feed/"}
-      - {id: spacecom, name: Space, type: rss, url: "https://www.space.com/feeds/all"}
-      - {id: hackaday, name: Hackaday, type: rss, url: "https://hackaday.com/blog/feed/"}
-      - {id: lobsters, name: Lobsters, type: rss, url: "https://lobste.rs/rss"}
-      - {id: wsjtech, name: WSJ, type: rss, url: "https://feeds.a.dj.com/rss/RSSWSJD.xml"}
-      - {id: producthunt, name: PH, type: api, url: "https://api.producthunt.com/v1/posts?per_page=15"}
-      - {id: devto, name: DEV, type: hotlist, url: "https://dev.to/api/articles?per_page=15&top=1"}
 
-  # ── 热点速报 ──────────────────────────────────────
+  # ── 🌍 新闻速报：国际政经 ────────────────────────
   - id: trendradar
-    name: 热点速报
+    name: 新闻速报
     llm: {model: deepseek-chat, api_key_env: DEEPSEEK_API_KEY, api_base: "https://api.deepseek.com", temperature: 0.5, max_tokens: 6000}
     push: {email: true, email_to: "${EMAIL_TO}"}
     schedule: "daily 18:32"
     enabled: true
     prompt_template: |
-      你是资深新闻编辑。根据以下 {{COUNT}} 条热点数据，撰写一份全面的中文日报。
+      你是资深国际新闻编辑。根据以下 {{COUNT}} 条来自全球主流媒体的当日新闻，写一份严肃专业的国际新闻简报。只基于提供的内容，不要编造。
 
-      📰 头条聚焦（5条深度解读，含核心事实+对普通人的影响）
-      🌐 全球速览（按亚太/欧洲/美洲/中东分区，国际关系/冲突/外交要事）
-      💹 财经科技（市场动态+科技公司+政策变化的业务影响）
-      💬 社媒热议（微博/知乎/B站争议话题，简要说明争议点）
-      最后附 80 字编辑点评。
+      📰 头条聚焦（5条深度解读：核心事实+影响分析+关键背景，每条80字以上）
+      🌐 全球速览（按亚太/欧洲/美洲/中东分区，各1-2条要闻，侧重国际关系与外交动向）
+      💹 财经市场（重要经济数据、市场异动、企业重大动态，说明影响）
+
+      最后附 80 字编辑点评，总结今日全球核心信号。
+      格式 Markdown，板块间用 --- 分隔。
 
       {{CONTEXT}}
     sources:
-      - {id: toutiao, name: 头条, type: hotlist, url: "https://www.toutiao.com/hot-event/hot-board/?origin=toutiao_pc"}
-      - {id: baidu, name: 百度, type: hotlist, url: "https://top.baidu.com/board?tab=realtime"}
-      - {id: weibo, name: 微博, type: hotlist, url: "https://weibo.com/ajax/side/hotSearch"}
-      - {id: hackernews, name: HN, type: hotlist, url: "https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=20"}
-      - {id: techcrunch, name: TechCrunch, type: rss, url: "https://techcrunch.com/feed/"}
-      - {id: theverge, name: TheVerge, type: rss, url: "https://www.theverge.com/rss/index.xml"}
-      - {id: wired, name: WIRED, type: rss, url: "https://www.wired.com/feed/rss"}
       - {id: npr, name: NPR, type: rss, url: "https://feeds.npr.org/1001/rss.xml"}
-      - {id: france24, name: France24, type: rss, url: "https://www.france24.com/en/rss"}
       - {id: cbs, name: CBS, type: rss, url: "https://www.cbsnews.com/latest/rss/main"}
-      - {id: cnbc, name: CNBC, type: rss, url: "https://www.cnbc.com/id/19854910/device/rss/rss.html"}
+      - {id: abcnews, name: ABC, type: rss, url: "https://abcnews.go.com/abcnews/topstories"}
       - {id: politico, name: Politico, type: rss, url: "https://rss.politico.com/politics-news.xml"}
+      - {id: cnbc, name: CNBC, type: rss, url: "https://www.cnbc.com/id/19854910/device/rss/rss.html"}
+      - {id: france24, name: France24, type: rss, url: "https://www.france24.com/en/rss"}
+      - {id: wsjtech, name: WSJ, type: rss, url: "https://feeds.a.dj.com/rss/RSSWSJD.xml"}
+      - {id: thehill, name: The Hill, type: rss, url: "https://thehill.com/rss/syndicator/19110"}
+      - {id: vice, name: VICE, type: rss, url: "https://www.vice.com/en/rss"}
+      - {id: cnet, name: CNET, type: rss, url: "https://www.cnet.com/rss/news/"}
 
-  # ── 游戏日报 ──────────────────────────────────────
+  # ── 🎮 游戏日报：全球游戏 ────────────────────────
   - id: gamehub
     name: 游戏日报
     llm: {model: deepseek-chat, api_key_env: DEEPSEEK_API_KEY, api_base: "https://api.deepseek.com", temperature: 0.6, max_tokens: 6000}
@@ -92,14 +65,15 @@ feeds:
     schedule: "daily 18:34"
     enabled: true
     prompt_template: |
-      你是资深游戏编辑。根据以下 {{COUNT}} 条全球游戏资讯，写一份充实的日报。
+      你是资深游戏编辑。根据以下 {{COUNT}} 条全球游戏资讯，写一份充实的日报。只基于提供的内容。
 
-      🔥 重磅新闻（新作/收购/重大更新，含分析）
-      🎮 新游动态（类型/平台/发售日/亮点/期待值分析）
-      📰 行业新闻（公司动态+市场数据+法规，有数据就引用）
-      🎙️ 评测观点（多方角度，避免一面倒）
-      💡 开发社区（独立游戏/开源/MOD/社区大事）
-      最后 50 字总结核心信号。
+      🔥 重磅新闻（新作/收购/重大更新，含分析和影响）
+      🎮 新游动态（类型/平台/发售日/亮点/期待值分析，3-5条）
+      📰 行业新闻（公司动态+市场数据+法规，引用数据，3-5条）
+      🎙️ 评测观点（多方角度呈现，避免一面倒，2-3条）
+
+      最后 50 字总结今日游戏圈核心信号。
+      格式 Markdown。
 
       {{CONTEXT}}
     sources:
@@ -119,7 +93,7 @@ feeds:
       - {id: rpgsite, name: RPGSite, type: rss, url: "https://www.rpgsite.net/feed"}
       - {id: siliconera, name: Siliconera, type: rss, url: "https://www.siliconera.com/feed/"}
 
-  # ── 科技日报 ──────────────────────────────────────
+  # ── 💻 科技日报：全球科技学术 ────────────────────
   - id: horizon
     name: 科技日报
     llm: {model: deepseek-chat, api_key_env: DEEPSEEK_API_KEY, api_base: "https://api.deepseek.com", temperature: 0.3, max_tokens: 8000}
@@ -127,16 +101,16 @@ feeds:
     schedule: "daily 18:36"
     enabled: true
     prompt_template: |
-      你是资深技术编辑。根据以下 {{COUNT}} 条科技新闻，撰写全面深入的中英双语技术日报。每个板块至少 250 字。
+      你是资深技术编辑。根据以下 {{COUNT}} 条全球科技新闻，撰写全面深入的中英双语技术日报。只基于提供的内容。
 
-      🤖 AI/ML（模型发布+技术突破+行业应用+监管）
-      💻 开源开发（重要库/框架/工具更新+技术解释）
-      🏢 科技产业（公司动态+融资+战略）
-      🔬 学术前沿（重要论文/研究+技术解释+潜在应用）
-      📡 产品硬件（新设备/新服务/新功能）
-      📊 趋势数据（行业报告+数据洞察）
+      🤖 AI/ML（模型发布+技术突破+行业应用+监管，3-5条，含中英双语摘要）
+      💻 开源开发（重要库/框架/工具更新，2-3条，解释技术要点）
+      🏢 科技产业（公司动态+融资+战略变化，2-3条，说明业务影响）
+      🔬 学术前沿（重要论文/研究突破，1-2条，解释创新点+潜在应用）
+      📡 产品硬件（新设备/新功能，1-2条）
+      📊 趋势数据（行业报告+数据洞察，1-2条）
 
-      每条要有中英文双语摘要（先中文后英文）。板块间用 --- 分隔。
+      每条新闻提供中英双语摘要（先 CN 后 EN one-line）。板块间用 --- 分隔。每板块至少 250 字。
 
       {{CONTEXT}}
     sources:
@@ -151,8 +125,10 @@ feeds:
       - {id: sciencedaily, name: Science, type: rss, url: "https://www.sciencedaily.com/rss/all.xml"}
       - {id: nature, name: Nature, type: rss, url: "https://www.nature.com/nature.rss"}
       - {id: zdnet, name: ZDNet, type: rss, url: "https://www.zdnet.com/news/rss.xml"}
+      - {id: mashable, name: Mashable, type: rss, url: "https://mashable.com/feed"}
+      - {id: physorg, name: Phys.org, type: rss, url: "https://phys.org/rss-feed/"}
+      - {id: spacecom, name: Space, type: rss, url: "https://www.space.com/feeds/all"}
       - {id: hackaday, name: Hackaday, type: rss, url: "https://hackaday.com/blog/feed/"}
       - {id: lobsters, name: Lobsters, type: rss, url: "https://lobste.rs/rss"}
-      - {id: wsjtech, name: WSJ, type: rss, url: "https://feeds.a.dj.com/rss/RSSWSJD.xml"}
       - {id: producthunt, name: PH, type: api, url: "https://api.producthunt.com/v1/posts?per_page=15"}
       - {id: githubtrending, name: GitHub, type: hotlist, url: "https://api.github.com/search/repositories?q=stars:%3E500+pushed:%3E2024-01-01&sort=stars&order=desc&per_page=15"}
