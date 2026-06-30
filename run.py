@@ -20,7 +20,7 @@ sys.path.insert(0, str(HERE))
 # Load .env
 env_file = HERE / ".env"
 if env_file.exists():
-    with open(env_file) as f:
+    with open(env_file, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if line and not line.startswith("#") and "=" in line:
