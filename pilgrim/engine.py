@@ -722,42 +722,36 @@ def save_consolidated_html_file(html: str) -> str:
 
 
 def _build_email_body(feed_results) -> str:
-    """移动端优先的邮件 HTML — 堆叠式无标签，所有内容直接可见。"""
+    """移动端优先的邮件 HTML — 只展示 AI 日报主体，不列信源条目，内容优先。"""
     today = datetime.now().strftime('%Y-%m-%d %A')
     total = sum(len(items) for _, items, _ in feed_results)
     sections = []
     for feed, items, ai_report in feed_results:
         meta = _FEED_TAB_META.get(feed.id, _DEFAULT_TAB_META)
-        items_html = ""
-        for item in items[:20]:
-            url = item.url or "#"
-            src = _escape_html(item.source)
-            items_html += (
-                f'<tr><td style="padding:6px 0;border-bottom:1px solid #eee">'
-                f'<a href="{url}" style="color:#1a73e8;font-weight:500;text-decoration:none;font-size:14px">{_escape_html(item.title)}</a>'
-                f'<br><span style="color:#999;font-size:11px">{src}</span></td></tr>'
-            )
         digest = _markdown_to_html(ai_report)
+        # 统计信源分布（紧凑一行）
+        from collections import Counter
+        src_counts = Counter(item.source for item in items)
+        top_srcs = ', '.join(f'{s}({c})' for s, c in src_counts.most_common(5))
         sections.append(f"""
-<div style="margin:0 0 30px;background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.06)">
-  <div style="border-left:4px solid {meta['color']};padding-left:12px;margin-bottom:14px">
-    <div style="font-size:18px;font-weight:700;color:{meta['color']}">{meta['icon']} {_escape_html(feed.name)}</div>
-    <div style="font-size:12px;color:#999">{_escape_html(meta['desc'])} · {len(items)} 条</div>
+<div style="margin:0 0 24px;background:#fff;border-radius:12px;padding:16px 18px;box-shadow:0 2px 6px rgba(0,0,0,.05)">
+  <div style="border-left:4px solid {meta['color']};padding-left:10px;margin-bottom:10px">
+    <div style="font-size:17px;font-weight:700;color:{meta['color']}">{meta['icon']} {_escape_html(feed.name)}</div>
+    <div style="font-size:11px;color:#999">收录 {len(items)} 条 · {top_srcs}</div>
   </div>
-  <div style="font-size:14px;color:#444;line-height:1.7;margin-bottom:16px;background:#f8f9fa;padding:14px 16px;border-radius:8px">{digest or '<p style="color:#999">暂无摘要</p>'}</div>
-  <table style="width:100%;border-collapse:collapse">{items_html}</table>
+  <div style="font-size:14px;color:#333;line-height:1.75">{digest or '<p style="color:#999">暂无摘要</p>'}</div>
 </div>""")
     return f"""<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Pilgrim Intel / {today}</title></head>
-<body style="margin:0;padding:16px;background:#f0f2f5;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif">
+<body style="margin:0;padding:12px;background:#f0f2f5;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif">
 <div style="max-width:640px;margin:0 auto">
-  <div style="background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:16px;padding:24px;color:#fff;text-align:center;margin-bottom:20px">
-    <div style="font-size:22px;font-weight:800">Pilgrim Intel Daily</div>
-    <div style="font-size:13px;opacity:.85;margin-top:6px">{today} · {len(feed_results)} feeds · {total} items</div>
+  <div style="background:linear-gradient(135deg,#4338ca,#7c3aed);border-radius:14px;padding:20px 18px;color:#fff;text-align:center;margin-bottom:16px">
+    <div style="font-size:20px;font-weight:800">Pilgrim Intel</div>
+    <div style="font-size:12px;opacity:.8;margin-top:4px">{today} · {total} 条资讯 · {len(feed_results)} 板块</div>
   </div>
   {"".join(sections)}
-  <div style="text-align:center;color:#aaa;font-size:11px;padding:20px">Powered by Pilgrim Intel 2.0</div>
+  <div style="text-align:center;color:#bbb;font-size:10px;padding:16px">自动生成 · 仅供个人参阅</div>
 </div></body></html>"""
 
 
