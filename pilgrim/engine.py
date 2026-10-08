@@ -832,7 +832,9 @@ class FeedRunner:
                 sel = ((src.extra or {}).get("article_sel", "") if src else "")
                 async with sem:
                     text = await self._fetch_article_text(c, it.url, sel)
-                if text:
+                # 质量闸门：太短、或含 {{占位符}} 的（SPA 模板页，如上观详情页）
+                # 都不是正文，宁可不写，也别把模板文本当正文喂给模型
+                if text and len(text) >= 200 and "{{" not in text[:600]:
                     it.summary = text[:max_chars]
             await asyncio.gather(*(one(it) for it in picked))
 

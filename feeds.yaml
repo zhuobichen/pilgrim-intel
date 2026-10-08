@@ -143,7 +143,7 @@ feeds:
     push: {email: true, standalone: true, email_to: "${EMAIL_TO}"}
     # 正文增强：只对标记了 extra.article 的源抓正文，每源最多 6 篇、每篇留 900 字。
     # 列表页只给标题，正文才是「具体政策举措 / 评论原句」的来源。
-    enrich: {article: true, per_source: 6, max_articles: 60, max_chars: 900}
+    enrich: {article: true, per_source: 3, max_articles: 90, max_chars: 900, concurrency: 8}
     schedule: "daily 18:30"
     enabled: true
     prompt_template: |
@@ -187,46 +187,46 @@ feeds:
       # 政策文件库 JSON：每条直接带 文号/发文机关/发布日期/主题分类（免密钥）
       - {id: gov_policy, name: 中国政府网·政策库, type: govpolicy, extra: {limit: 30}, url: "https://sousuo.www.gov.cn/search-gov/data?t=zhengcelibrary&type=gwyzcwjk&q=&searchfield=title&sort=pubtime&sortType=1&p=1&n=30"}
       # 中新网是实测唯一「规范且在更新」的中央门户 RSS（最新到当天）
-      - {id: chinanews_china, name: 中新网·时政, type: rss, url: "https://www.chinanews.com.cn/rss/china.xml"}
+      - {id: chinanews_china, name: 中新网·时政, type: rss, url: "https://www.chinanews.com.cn/rss/china.xml", extra: {article: true}}
       - {id: chinanews_theory, name: 中新网·理论评论, type: rss, url: "https://www.chinanews.com.cn/rss/theory.xml", extra: {article: true}}
       # ── HTML 列表页（这些站无可用 RSS，选择器为实测结果）──
       - {id: gmw_pinglun, name: 光明网·时评, type: html, url: "https://guancha.gmw.cn/", extra: {item: "ul.arc_list_t1 li a", base: "https://guancha.gmw.cn/", limit: 15, article: true, article_sel: ".g-main"}}
-      - {id: banyuetan, name: 半月谈, type: html, url: "http://www.banyuetan.org/", extra: {item: 'a[href*="/detail/20"]', limit: 20}}
-      - {id: ce_gdxw, name: 经济日报, type: html, url: "http://www.ce.cn/xwzx/gnsz/gdxw/", extra: {item: 'a[href*="/t20"]', base: "http://www.ce.cn/xwzx/gnsz/gdxw/", limit: 20}}
+      - {id: banyuetan, name: 半月谈, type: html, url: "http://www.banyuetan.org/", extra: {item: 'a[href*="/detail/20"]', limit: 20, article: true}}
+      - {id: ce_gdxw, name: 经济日报, type: html, url: "http://www.ce.cn/xwzx/gnsz/gdxw/", extra: {item: 'a[href*="/t20"]', base: "http://www.ce.cn/xwzx/gnsz/gdxw/", limit: 20, article: true}}
       # ── 央媒时政/理论（HTML，选择器为实测结果）──
       # 注：politics.people.com.cn 首页被 WAF 挡(403)，只能抓子栏目页
-      - {id: xinhua_politics, name: 新华网·时政, type: html, url: "http://www.news.cn/politics/", extra: {item: "div.tit span a", limit: 25}}
+      - {id: xinhua_politics, name: 新华网·时政, type: html, url: "http://www.news.cn/politics/", extra: {item: "div.tit span a", limit: 25, article: true}}
       - {id: people_opinion, name: 人民网·观点, type: html, url: "http://opinion.people.com.cn/", extra: {item: "div.hdNews strong a", limit: 20, article: true}}
-      - {id: people_politics, name: 人民网·时政, type: html, url: "http://politics.people.com.cn/GB/1024/index.html", extra: {item: "ul.list_16.mt10 li a", limit: 25}}
+      - {id: people_politics, name: 人民网·时政, type: html, url: "http://politics.people.com.cn/GB/1024/index.html", extra: {item: "ul.list_16.mt10 li a", limit: 25, article: true}}
       - {id: qstheory, name: 求是网, type: html, url: "https://www.qstheory.cn/", extra: {item: "div.v10_yaowen ul li a", limit: 15, article: true}}
       # ── 补充央媒 / 门户 ──
-      - {id: thepaper_hot, name: 澎湃新闻, type: thepaper, url: "https://cache.thepaper.cn/contentapi/wwwIndex/rightSidebar", extra: {limit: 20}}
+      - {id: thepaper_hot, name: 澎湃新闻, type: thepaper, url: "https://cache.thepaper.cn/contentapi/wwwIndex/rightSidebar", extra: {limit: 20, article: true}}
       - {id: cctv_china, name: 央视网, type: cctv, url: "https://news.cctv.com/2019/07/gaiban/cmsdatainterface/page/china_1.jsonp", extra: {limit: 30}}
       - {id: cyol, name: 中国青年报, type: html, url: "http://news.cyol.com/", extra: {item: 'a[href*="/gb/news/articles/"]', limit: 20, article: true}}
       # 人民日报电子版：版面路径每天变，用 {ym}/{dd} 占位符（休息日无报纸时该源返回 0 条，不影响其他源）
       - {id: rmrb, name: 人民日报, type: html, url: "http://paper.people.com.cn/rmrb/pc/layout/{ym}/{dd}/node_01.html", extra: {item: 'a[href*="content/"]', base: "http://paper.people.com.cn/rmrb/pc/layout/{ym}/{dd}/", limit: 15, article: true}}
       # ── 部委 / 行业媒体（补齐申论各话题的权威口径）──
-      - {id: huanqiu, name: 环球网, type: html, url: "https://www.huanqiu.com/", extra: {item: "div.secNewsBlock a", base: "https:", limit: 20, headers: {User-Agent: "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"}}}
+      - {id: huanqiu, name: 环球网, type: html, url: "https://www.huanqiu.com/", extra: {item: "div.secNewsBlock a", base: "https:", limit: 20, headers: {User-Agent: "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"}, article: true}}
       - {id: studytimes, name: 学习时报, type: html, url: "https://www.studytimes.cn/llsd/", extra: {item: "li.xian_gray1 a", title_sel: "div.font_20", base: "https://www.studytimes.cn/llsd/", limit: 15, article: true}}
-      - {id: workercn, name: 工人日报, type: html, url: "https://www.workercn.cn/", extra: {item: "div.r6c2 a", base: "https://www.workercn.cn", limit: 20}}
-      - {id: farmer, name: 农民日报, type: html, url: "https://www.farmer.com.cn/", extra: {item: "div.list-item a", base: "https://www.farmer.com.cn", limit: 20}}
-      - {id: stdaily, name: 科技日报, type: html, url: "https://www.stdaily.com/web/rdxw/node_327.html", extra: {item: "div.f_lieb_list a", base: "https://www.stdaily.com", limit: 20}}
+      - {id: workercn, name: 工人日报, type: html, url: "https://www.workercn.cn/", extra: {item: "div.r6c2 a", base: "https://www.workercn.cn", limit: 20, article: true}}
+      - {id: farmer, name: 农民日报, type: html, url: "https://www.farmer.com.cn/", extra: {item: "div.list-item a", base: "https://www.farmer.com.cn", limit: 20, article: true}}
+      - {id: stdaily, name: 科技日报, type: html, url: "https://www.stdaily.com/web/rdxw/node_327.html", extra: {item: "div.f_lieb_list a", base: "https://www.stdaily.com", limit: 20, article: true}}
       - {id: cenews, name: 中国环境报, type: cenews, url: "https://cmsapi.cenews.com.cn/api/getArticles?cid=9&pageSize=20", extra: {limit: 20}}
-      - {id: jyb, name: 中国教育报, type: html, url: "http://www.jyb.cn/", extra: {item: "ul.ulLista a", base: "http://www.jyb.cn", limit: 20}}
-      - {id: chinadaily_cn, name: 中国日报中文网, type: html, url: "https://cn.chinadaily.com.cn/c/5bd54ba2a3101a87ca8ff5ee/5bd54bdea3101a87ca8ff5f0", extra: {item: "div.busBox3 h3 a", base: "https:", limit: 20}}
+      - {id: jyb, name: 中国教育报, type: html, url: "http://www.jyb.cn/", extra: {item: "ul.ulLista a", base: "http://www.jyb.cn", limit: 20, article: true}}
+      - {id: chinadaily_cn, name: 中国日报中文网, type: html, url: "https://cn.chinadaily.com.cn/c/5bd54ba2a3101a87ca8ff5ee/5bd54bdea3101a87ca8ff5f0", extra: {item: "div.busBox3 h3 a", base: "https:", limit: 20, article: true}}
       - {id: cpc12371, name: 共产党员网, type: html, url: "https://www.12371.cn/", extra: {item: "div.dyw820_text_List a", base: "https://www.12371.cn", limit: 20, article: true}}
       - {id: qizhiwang, name: 旗帜网, type: html, url: "http://www.qizhiwang.org.cn/", extra: {item: 'a[href*="/n1/2026/"]', base: "http://www.qizhiwang.org.cn", limit: 20, article: true}}
       # ── 市场化媒体 / 地方党媒 ──
-      - {id: jiemian_rss, name: 界面新闻, type: rss, url: "https://a.jiemian.com/index.php?m=article&a=rss", extra: {limit: 25}}
-      - {id: guancha_zhengzhi, name: 观察者网, type: html, url: "https://www.guancha.cn/column/ZhengZhi/1", extra: {item: "ul.column-list > li h4.module-title a", base: "https://www.guancha.cn", limit: 20}}
-      - {id: bjnews, name: 新京报, type: html, url: "https://www.bjnews.com.cn/news", extra: {item: "div.pin a", base: "https://www.bjnews.com.cn", limit: 20}}
-      - {id: bjd_shishi, name: 北京日报, type: html, url: "https://www.bjd.com.cn/app/wzsy/shishi/", extra: {item: "div.list-item a", base: "https://www.bjd.com.cn", limit: 20}}
-      - {id: china_news, name: 中国网, type: html, url: "http://news.china.com.cn/", extra: {item: "li.clearfix h3 a", limit: 20}}
-      - {id: inewsweek, name: 中国新闻周刊, type: html, url: "https://news.inewsweek.cn/society/", extra: {item: "div.grid-item a", base: "https://news.inewsweek.cn", limit: 15}}
+      - {id: jiemian_rss, name: 界面新闻, type: rss, url: "https://a.jiemian.com/index.php?m=article&a=rss", extra: {limit: 25, article: true}}
+      - {id: guancha_zhengzhi, name: 观察者网, type: html, url: "https://www.guancha.cn/column/ZhengZhi/1", extra: {item: "ul.column-list > li h4.module-title a", base: "https://www.guancha.cn", limit: 20, article: true}}
+      - {id: bjnews, name: 新京报, type: html, url: "https://www.bjnews.com.cn/news", extra: {item: "div.pin a", base: "https://www.bjnews.com.cn", limit: 20, article: true}}
+      - {id: bjd_shishi, name: 北京日报, type: html, url: "https://www.bjd.com.cn/app/wzsy/shishi/", extra: {item: "div.list-item a", base: "https://www.bjd.com.cn", limit: 20, article: true}}
+      - {id: china_news, name: 中国网, type: html, url: "http://news.china.com.cn/", extra: {item: "li.clearfix h3 a", limit: 20, article: true}}
+      - {id: inewsweek, name: 中国新闻周刊, type: html, url: "https://news.inewsweek.cn/society/", extra: {item: "div.grid-item a", base: "https://news.inewsweek.cn", limit: 15, article: true}}
       - {id: gmw_theory, name: 光明网·理论, type: html, url: "https://theory.gmw.cn/", extra: {item: "div.bd ul > li a", base: "https://theory.gmw.cn", limit: 15, article: true}}
       - {id: byt_pinglun, name: 半月谈·评论, type: html, url: "http://www.banyuetan.org/byt/banyuetanpinglun/index.html", extra: {item: "ul.clearFix > li h3 a", limit: 15, article: true}}
       - {id: byt_jicengzhili, name: 半月谈·基层治理, type: html, url: "http://www.banyuetan.org/byt/jicengzhili/index.html", extra: {item: "ul.clearFix > li h3 a", limit: 15, article: true}}
       # 上观新闻（=解放日报，含文汇报时评）：静态 JSON，字段规整、不需要任何 header
       - {id: shobserver_yaowen, name: 上观·要闻, type: api, url: "https://www.shobserver.com/staticsg/data/web/section/42.json", extra: {path: "data.newsList", title: "title", date: "publishtime", date_kind: "epoch_ms", link_tpl: "https://www.shobserver.com/staticsg/res/html/web/newsDetail.html?id={id}&sid={sectionid}", limit: 25}}
-      - {id: shobserver_pinglun, name: 上观·评论, type: api, url: "https://www.shobserver.com/staticsg/data/web/section/44.json", extra: {path: "data.newsList", title: "title", date: "publishtime", date_kind: "epoch_ms", link_tpl: "https://www.shobserver.com/staticsg/res/html/web/newsDetail.html?id={id}&sid={sectionid}", limit: 25, article: true}}
-      - {id: shobserver_sixiang, name: 上观·思想, type: api, url: "https://www.shobserver.com/staticsg/data/web/section/62.json", extra: {path: "data.newsList", title: "title", date: "publishtime", date_kind: "epoch_ms", link_tpl: "https://www.shobserver.com/staticsg/res/html/web/newsDetail.html?id={id}&sid={sectionid}", limit: 20, article: true}}
+      - {id: shobserver_pinglun, name: 上观·评论, type: api, url: "https://www.shobserver.com/staticsg/data/web/section/44.json", extra: {path: "data.newsList", title: "title", date: "publishtime", date_kind: "epoch_ms", link_tpl: "https://www.shobserver.com/staticsg/res/html/web/newsDetail.html?id={id}&sid={sectionid}", limit: 25}}
+      - {id: shobserver_sixiang, name: 上观·思想, type: api, url: "https://www.shobserver.com/staticsg/data/web/section/62.json", extra: {path: "data.newsList", title: "title", date: "publishtime", date_kind: "epoch_ms", link_tpl: "https://www.shobserver.com/staticsg/res/html/web/newsDetail.html?id={id}&sid={sectionid}", limit: 20}}
