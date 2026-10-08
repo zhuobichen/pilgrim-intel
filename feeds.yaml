@@ -143,7 +143,7 @@ feeds:
     push: {email: true, standalone: true, email_to: "${EMAIL_TO}"}
     # 正文增强：只对标记了 extra.article 的源抓正文，每源最多 6 篇、每篇留 900 字。
     # 列表页只给标题，正文才是「具体政策举措 / 评论原句」的来源。
-    enrich: {article: true, per_source: 6, max_chars: 900}
+    enrich: {article: true, per_source: 6, max_articles: 60, max_chars: 900}
     schedule: "daily 18:30"
     enabled: true
     prompt_template: |
