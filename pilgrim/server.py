@@ -50,7 +50,7 @@ class PilgrimHandler(BaseHTTPRequestHandler):
                         "type": "object",
                         "properties": {
                             "query": {"type": "string", "description": "搜索关键词"},
-                            "feed_id": {"type": "string", "description": "可选：限定 feed（abstract-culture/trendradar/gamehub/horizon）"},
+                            "feed_id": {"type": "string", "description": "可选：限定 feed（abstract-culture/trendradar/gamehub/horizon/shenlun）"},
                             "since_days": {"type": "integer", "description": "最近几天，默认 7", "default": 7},
                             "limit": {"type": "integer", "description": "返回条数，默认 20", "default": 20}
                         },

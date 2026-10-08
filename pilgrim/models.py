@@ -19,11 +19,15 @@ class ContentItem:
     extra: Dict[str, Any] = field(default_factory=dict)
 
     def fingerprint(self) -> str:
-        """Stable identity for dedup — title + normalized host."""
+        """Stable identity for dedup — feed + title + normalized host.
+
+        含 feed_id：同一篇文章允许在不同 feed 下各存一份（例如一条时政新闻
+        既进资讯日报、又进申论素材库），但仍保留「同一 feed 内跨天不重复」。
+        """
         import hashlib, re
         from urllib.parse import urlparse
         host = urlparse(self.url).netloc if self.url else ""
-        raw = f"{self.title.strip().lower()}|{host}"
+        raw = f"{self.feed_id}|{self.title.strip().lower()}|{host}"
         return hashlib.sha256(raw.encode()).hexdigest()
 
 

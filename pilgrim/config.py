@@ -15,11 +15,15 @@ DEFAULT_CONFIG_PATH = Path(__file__).resolve().parent.parent / "feeds.yaml"
 _ENV_RE = re.compile(r'\$\{(\w+)\}')
 
 def resolve_env(val: str) -> str:
-    """Resolve ${VAR} placeholders in a string."""
+    """Resolve ${VAR} placeholders in a string.
+
+    变量未设置时解析为**空串**（而不是保留 "${VAR}" 字面量）——否则下游
+    会把未解析的占位符当成一个合法的收件人地址，尝试发信后才失败。
+    """
     if not isinstance(val, str):
         return val
     def _replace(m):
-        return os.environ.get(m.group(1), m.group(0))
+        return os.environ.get(m.group(1), "")
     return _ENV_RE.sub(_replace, val)
 
 
@@ -49,7 +53,12 @@ class FeedDef:
         self.llm_max_tokens: int = data.get("llm", {}).get("max_tokens", 4000)
         self.push_email: bool = data.get("push", {}).get("email", False)
         self.push_email_to: str = resolve_env(data.get("push", {}).get("email_to", ""))
+        # standalone=True：不并入合并邮件，自己单独发一封（用于申论时政素材等独立频道）
+        self.push_standalone: bool = data.get("push", {}).get("standalone", False)
         self.prompt_template: str = data.get("prompt_template", "")
+        # 正文增强：{article: true, per_source: 6, max_chars: 900}
+        # 只对 source.extra.article == true 的源抓正文，否则只拿标题
+        self.enrich: dict = data.get("enrich", {})
         self.schedule: str = data.get("schedule", "daily 18:30")
         self.enabled: bool = data.get("enabled", True)
         self.lang: str = data.get("lang", "zh")

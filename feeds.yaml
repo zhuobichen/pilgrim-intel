@@ -134,3 +134,68 @@ feeds:
       - {id: lobsters, name: Lobsters, type: rss, url: "https://lobste.rs/rss"}
       - {id: producthunt, name: PH, type: api, url: "https://api.producthunt.com/v1/posts?per_page=15"}
       - {id: githubtrending, name: GitHub, type: hotlist, url: "https://api.github.com/search/repositories?q=stars:%3E500+pushed:%3E2024-01-01&sort=stars&order=desc&per_page=15"}
+
+  # ── 📚 申论时政素材：考公申论专用 ──────────────────
+  # standalone=true：单独发一封邮件，不并入上面的合并日报。
+  - id: shenlun
+    name: 申论时政素材
+    llm: {model: deepseek-chat, api_key_env: DEEPSEEK_API_KEY, api_base: "https://api.deepseek.com", temperature: 0.4, max_tokens: 8000}
+    push: {email: true, standalone: true, email_to: "${EMAIL_TO}"}
+    # 正文增强：只对标记了 extra.article 的源抓正文，每源最多 6 篇、每篇留 900 字。
+    # 列表页只给标题，正文才是「具体政策举措 / 评论原句」的来源。
+    enrich: {article: true, per_source: 6, max_chars: 900}
+    schedule: "daily 18:30"
+    enabled: true
+    prompt_template: |
+      你是公务员考试申论辅导专家。根据以下 {{COUNT}} 条来自中国官方媒体与政府网站的当日内容（含正文摘录），整理一份申论时政素材日报。
+
+      【硬性要求】
+      - 只使用给定条目中**实际出现**的文字。不得自行补全政策原文、领导人讲话、数据或文件编号；
+        政策举措、权威表述、金句都要**取自所给内容**，不得改写或臆造。
+      - 条目标注的「文件信息」（发文机关／文号／发布日期／主题分类）可直接引用，不要另行推测。
+      - 每一个具体数字、文号、地名、单位名，都必须出现在所给条目里；给不出出处的就不要写。
+      - 只有标题、没有正文的条目，仅作标题层面的索引，不展开推断。
+      - 某类素材今日不足时，直接写「今日无」，不要为凑数编造。
+
+      ## 📌 时政热点与官方定调
+      3-5 条。每条写：**事件或政策名（含文号）** + 官方口径要点 + 一句「可提炼论点」。
+
+      ## 📜 政策文件要点
+      每份文件写：**发文机关 + 文号 + 发布日期**（取自条目的「文件信息」，缺失就省略）→ 核心举措（分点，取自正文）→ 可引用的权威表述（原文照抄并加引号）。
+      没有正文的文件只列文件名，统一归到本节末尾的「仅有标题备查」清单里。
+
+      ## 💬 权威评论金句
+      3-6 条，每条严格用下面的格式：
+      > 金句原文
+      —— 媒体名《文章标题》
+      **适用**：一句话说明用在申论的什么位置（开头／结尾／分论点升华），以及适合哪类话题。
+
+      ## 🧩 案例与数据素材
+      每条按「主体—做法—成效—启示」四要素展开，保留原文的具体数字、地名、单位名。
+      每条末尾另起一行写：**可迁移到**：话题A、话题B（2-4 个）。
+
+      ## 🏷️ 申论话题索引
+      把上述内容归入：基层治理／乡村振兴／生态环保／科技创新／文化自信／民生保障／法治建设／数字经济／对外开放／干部作风 等话题，每个话题下列出可用条目编号。
+
+      板块之间用 --- 分隔。
+
+      {{CONTEXT}}
+    sources:
+      # ── 机器可读（RSS，实测在更新）──
+      # 政策主干：政府网官方 RSS，条目即国务院/两办文件
+      - {id: gov_rss, name: 中国政府网, type: rss, url: "http://www.gov.cn/pushinfo/v150203/rss.xml", extra: {article: true, article_sel: "//div[@id='UCAP-CONTENT']"}}
+      # 政策文件库 JSON：每条直接带 文号/发文机关/发布日期/主题分类（免密钥）
+      - {id: gov_policy, name: 中国政府网·政策库, type: govpolicy, extra: {limit: 30}, url: "https://sousuo.www.gov.cn/search-gov/data?t=zhengcelibrary&type=gwyzcwjk&q=&searchfield=title&sort=pubtime&sortType=1&p=1&n=30"}
+      # 中新网是实测唯一「规范且在更新」的中央门户 RSS（最新到当天）
+      - {id: chinanews_china, name: 中新网·时政, type: rss, url: "https://www.chinanews.com.cn/rss/china.xml"}
+      - {id: chinanews_theory, name: 中新网·理论评论, type: rss, url: "https://www.chinanews.com.cn/rss/theory.xml", extra: {article: true}}
+      # ── HTML 列表页（这些站无可用 RSS，选择器为实测结果）──
+      - {id: gmw_pinglun, name: 光明网·时评, type: html, url: "https://guancha.gmw.cn/", extra: {item: "ul.arc_list_t1 li a", base: "https://guancha.gmw.cn/", limit: 15, article: true, article_sel: ".g-main"}}
+      - {id: banyuetan, name: 半月谈, type: html, url: "http://www.banyuetan.org/", extra: {item: 'a[href*="/detail/20"]', limit: 20}}
+      - {id: ce_gdxw, name: 经济日报, type: html, url: "http://www.ce.cn/xwzx/gnsz/gdxw/", extra: {item: 'a[href*="/t20"]', base: "http://www.ce.cn/xwzx/gnsz/gdxw/", limit: 20}}
+      # ── 央媒时政/理论（HTML，选择器为实测结果）──
+      # 注：politics.people.com.cn 首页被 WAF 挡(403)，只能抓子栏目页
+      - {id: xinhua_politics, name: 新华网·时政, type: html, url: "http://www.news.cn/politics/", extra: {item: "div.tit span a", limit: 25}}
+      - {id: people_opinion, name: 人民网·观点, type: html, url: "http://opinion.people.com.cn/", extra: {item: "div.hdNews strong a", limit: 20, article: true}}
+      - {id: people_politics, name: 人民网·时政, type: html, url: "http://politics.people.com.cn/GB/1024/index.html", extra: {item: "ul.list_16.mt10 li a", limit: 25}}
+      - {id: qstheory, name: 求是网, type: html, url: "https://www.qstheory.cn/", extra: {item: "div.v10_yaowen ul li a", limit: 15, article: true}}

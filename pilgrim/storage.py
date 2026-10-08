@@ -157,7 +157,18 @@ class PilgrimStore:
 
     def search(self, query: str, limit: int = 20, feed_id: str = None,
                since_days: int = 7) -> List[Dict]:
-        """Full-text search across all stored content."""
+        """全文搜索。
+
+        先用 FTS5；但 unicode61 分词器把连续的汉字当作**一个词元**，
+        搜「乡村」匹配不到标题里的「和美乡村」（实测 FTS 命中 0，LIKE 命中 1）。
+        因此 FTS 无结果时回退到 LIKE 子串匹配——个人库数据量小，全表扫描无压力。
+        """
+        rows = self._search_fts(query, limit, feed_id, since_days)
+        if not rows:
+            rows = self._search_like(query, limit, feed_id, since_days)
+        return rows
+
+    def _search_fts(self, query, limit, feed_id, since_days) -> List[Dict]:
         params = []
         sql = """SELECT c.title, c.url, c.source, c.feed_id, c.summary, c.fetched_at
                  FROM content_fts fts JOIN content c ON fts.rowid = c.id
@@ -172,8 +183,31 @@ class PilgrimStore:
             params.append(since)
         sql += " ORDER BY c.fetched_at DESC LIMIT ?"
         params.append(limit)
-        rows = self.conn.execute(sql, params).fetchall()
-        return [dict(r) for r in rows]
+        try:
+            return [dict(r) for r in self.conn.execute(sql, params).fetchall()]
+        except Exception:
+            # FTS 语法错误（如查询含特殊字符）时也交给 LIKE 兜底
+            return []
+
+    def _search_like(self, query, limit, feed_id, since_days) -> List[Dict]:
+        params = []
+        sql = """SELECT c.title, c.url, c.source, c.feed_id, c.summary, c.fetched_at
+                 FROM content c WHERE c.title LIKE ? OR c.summary LIKE ?"""
+        params.append(f"%{query}%")
+        params.append(f"%{query}%")
+        if feed_id:
+            sql += " AND c.feed_id = ?"
+            params.append(feed_id)
+        if since_days:
+            since = (datetime.now() - timedelta(days=since_days)).isoformat()
+            sql += " AND c.fetched_at >= ?"
+            params.append(since)
+        sql += " ORDER BY c.fetched_at DESC LIMIT ?"
+        params.append(limit)
+        try:
+            return [dict(r) for r in self.conn.execute(sql, params).fetchall()]
+        except Exception:
+            return []
 
     def get_recent(self, feed_id: str = None, limit: int = 50) -> List[Dict]:
         sql = "SELECT * FROM content"

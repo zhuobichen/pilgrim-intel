@@ -1,10 +1,11 @@
 $taskName = "PilgrimIntelDaily"
-$description = "Pilgrim Intel — AI News Aggregation (4 feeds: abstract-culture + trendradar + gamehub + horizon)"
+$description = "Pilgrim Intel — AI News Aggregation (abstract-culture + trendradar + gamehub + horizon; shenlun 独立邮件)"
 
 Unregister-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue -Confirm:$false
 
+$batPath = Join-Path $PSScriptRoot "daily-run.bat"
 $trigger = New-ScheduledTaskTrigger -Daily -At 18:30
-$action = New-ScheduledTaskAction -Execute "E:\CodeProject\pilgrim-intel\scripts\daily-run.bat"
+$action = New-ScheduledTaskAction -Execute $batPath
 $settings = New-ScheduledTaskSettingsSet `
     -AllowStartIfOnBatteries `
     -DontStopIfGoingOnBatteries `
