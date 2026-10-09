@@ -76,6 +76,15 @@ Windows Task Scheduler: `PilgrimIntelDaily` → 每天 18:30 执行 `scripts/dai
 
 `feeds.yaml` 里 `push: {standalone: true}` 的 feed 不并入合并邮件：它照常抓取并写入
 同一个 SQLite 库（可用 `run.py search` 与 MCP 检索），但自己单独发一封邮件。
-信源以中国政府网 RSS（政策文件）为中坚，中新网（时政/理论评论）、光明网时评、
-半月谈、经济日报为辅；这些站的 RSS 多已停更，故用 `type: html` 抓列表页，
-选择器写在 `source.extra.item` 里。
+
+- **信源 37 个**：央媒（人民日报/新华网/央视/求是/光明/经济日报/中国青年报/中国日报）、
+  部委行业报（工人日报/农民日报/科技日报/中国环境报/中国教育报）、党建理论（共产党员网/
+  旗帜网/学习时报）、市场化与地方（澎湃/界面/观察者网/新京报/北京日报/中国网/中国新闻周刊/
+  上观=解放日报/半月谈/中新网）、政策源（政府网 RSS + 政策文件库 JSON）。
+- **抓取方式**：`type` 支持 `rss` / `html` / `api`(JSON) / `govpolicy` / `thepaper` /
+  `cctv` / `cenews`；HTML 源的选择器写在 `source.extra.item`（以 `/` 开头按 XPath 解析）。
+- **正文增强**：31 个源抓文章正文（`enrich` 配置），AI 不再只能靠标题编。
+- **防编造**：prompt 约束 + 生成后 `_verify_digest` 机器核对文号与关键数字。
+- **取材按字符预算**（`enrich.context_chars`）而非固定条数，调大取材量也不会撑爆上下文。
+- ⚠️ **国内多数时政媒体的 RSS 已停更**（人民网停在 2025-06、新华网停在 2022-12），
+  只看 HTTP 状态码会采到陈年旧闻；引擎内置 `_check_freshness` 会对疑似停更的源告警。
