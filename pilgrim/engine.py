@@ -987,7 +987,7 @@ class FeedRunner:
 
         # 5. Push（合并推送模式下跳过单 feed 邮件）
         if self.feed.push_email and not skip_push:
-            html = self._build_html_email(ai_report, _balance_by_source(digest_target, 50))
+            html = self._build_html_email(ai_report, _balance_by_source(digest_target, 150))
             subject = f"{self.feed.name} {datetime.now().strftime('%Y-%m-%d')}"
             self.push_email(subject, html)
 
