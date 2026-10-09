@@ -211,7 +211,7 @@ feeds:
       - {id: workercn, name: 工人日报, type: html, url: "https://www.workercn.cn/", extra: {item: "div.r6c2 a", base: "https://www.workercn.cn", limit: 20, article: true}}
       - {id: farmer, name: 农民日报, type: html, url: "https://www.farmer.com.cn/", extra: {item: "div.list-item a", base: "https://www.farmer.com.cn", limit: 20, article: true}}
       - {id: stdaily, name: 科技日报, type: html, url: "https://www.stdaily.com/web/rdxw/node_327.html", extra: {item: "div.f_lieb_list a", base: "https://www.stdaily.com", limit: 20, article: true}}
-      - {id: cenews, name: 中国环境报, type: cenews, url: "https://cmsapi.cenews.com.cn/api/getArticles?cid=9&pageSize=20", extra: {limit: 20}}
+      - {id: cenews, name: 中国环境报, type: cenews, url: "https://cmsapi.cenews.com.cn/api/getArticles?cid=9&pageSize=20", extra: {limit: 20, article: true, per_source: 5}}
       - {id: jyb, name: 中国教育报, type: html, url: "http://www.jyb.cn/", extra: {item: "ul.ulLista a", base: "http://www.jyb.cn", limit: 20, article: true}}
       - {id: chinadaily_cn, name: 中国日报中文网, type: html, url: "https://cn.chinadaily.com.cn/c/5bd54ba2a3101a87ca8ff5ee/5bd54bdea3101a87ca8ff5f0", extra: {item: "div.busBox3 h3 a", base: "https:", limit: 20, article: true}}
       - {id: cpc12371, name: 共产党员网, type: html, url: "https://www.12371.cn/", extra: {item: "div.dyw820_text_List a", base: "https://www.12371.cn", limit: 20, article: true}}

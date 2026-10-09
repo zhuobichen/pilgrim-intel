@@ -54,8 +54,10 @@ _ARTICLE_SELECTORS = (
     "div.post-content",
 )
 
-_NOISE_XPATH = ("//script|//style|//nav|//footer|//header|//aside"
-                "|//form|//iframe|//noscript")
+# 只删真正安全的噪声。**不要把 nav/header/footer/form/aside 列进来**——
+# 有些老式 CMS 把正文包在 <form> 里（如经济日报），删了就把正文一起删了；
+# 误删正文的代价远大于多留几行导航（导航文字本来就短，模型能忽略）。
+_NOISE_XPATH = "//script|//style|//noscript|//iframe"
 
 
 def _expand_placeholders(url: str) -> str:
@@ -365,6 +367,7 @@ class FeedRunner:
         字段：list[].title / publishTime / fileID；条目没有直接链接，
         要按 https://www.cenews.com.cn/news.html?aid=<fileID> 拼。
         """
+        ex = src.extra or {}
         items: List[ContentItem] = []
         try:
             async with httpx.AsyncClient(timeout=20, follow_redirects=True, headers={
@@ -375,20 +378,42 @@ class FeedRunner:
                     self.log(f"CENEWS {src.name}: HTTP {r.status_code}")
                     return []
                 data = r.json()
-            for e in (data.get("list") or []):
-                title = (e.get("title") or "").strip()
-                fid = e.get("fileID")
-                if not title or not fid:
-                    continue
-                items.append(ContentItem(
-                    title=title,
-                    url=f"https://www.cenews.com.cn/news.html?aid={fid}",
-                    source=src.name, feed_id=self.feed.id,
-                    published_at=(e.get("publishTime") or None),
-                ))
-        except Exception as e:
-            self.log(f"CENEWS {src.name}: {type(e).__name__}")
-        return items[:int((src.extra or {}).get("limit", 20))]
+
+                for e in (data.get("list") or []):
+                    title = (e.get("title") or "").strip()
+                    fid = e.get("fileID")
+                    if not title or not fid:
+                        continue
+                    items.append(ContentItem(
+                        title=title,
+                        url=f"https://www.cenews.com.cn/news.html?aid={fid}",
+                        source=src.name, feed_id=self.feed.id,
+                        published_at=(e.get("publishTime") or None),
+                        extra={"fileID": fid},
+                    ))
+                items = items[:int(ex.get("limit", 20))]
+
+                # 详情页是 SPA、通用 HTML 提取拿不到正文；但同源有 getArticle?aid= 接口
+                if ex.get("article"):
+                    import re as _re
+                    max_chars = int((self.feed.enrich or {}).get("max_chars", 1000))
+                    for it in items[:int(ex.get("per_source", 5))]:
+                        fid = (it.extra or {}).get("fileID")
+                        if not fid:
+                            continue
+                        try:
+                            r2 = await c.get(
+                                f"https://cmsapi.cenews.com.cn/api/getArticle?aid={fid}")
+                            body = (r2.json() or {}).get("content") or ""
+                            text = _re.sub(r"<[^>]+>", "", body)
+                            text = _re.sub(r"\s+", " ", text).strip()
+                            if len(text) >= 200:
+                                it.summary = text[:max_chars]
+                        except Exception:
+                            continue
+        except Exception as err:
+            self.log(f"CENEWS {src.name}: {type(err).__name__}")
+        return items
 
     async def _fetch_cctv(self, src) -> List[ContentItem]:
         """央视网内容接口（JSONP）。
