@@ -139,11 +139,11 @@ feeds:
   # standalone=true：单独发一封邮件，不并入上面的合并日报。
   - id: shenlun
     name: 申论时政素材
-    llm: {model: deepseek-chat, api_key_env: DEEPSEEK_API_KEY, api_base: "https://api.deepseek.com", temperature: 0.4, max_tokens: 8000}
+    llm: {model: deepseek-chat, api_key_env: DEEPSEEK_API_KEY, api_base: "https://api.deepseek.com", temperature: 0.4, max_tokens: 32000}
     push: {email: true, standalone: true, email_to: "${EMAIL_TO}"}
     # 正文增强：只对标记了 extra.article 的源抓正文，每源最多 6 篇、每篇留 900 字。
     # 列表页只给标题，正文才是「具体政策举措 / 评论原句」的来源。
-    enrich: {article: true, per_source: 6, max_articles: 200, max_chars: 1000, concurrency: 12}
+    enrich: {article: true, per_source: 8, max_articles: 250, max_chars: 1000, concurrency: 12}
     schedule: "daily 18:30"
     enabled: true
     prompt_template: |
@@ -156,6 +156,8 @@ feeds:
       - 每一个具体数字、文号、地名、单位名，都必须出现在所给条目里；给不出出处的就不要写。
       - 只有标题、没有正文的条目，仅作标题层面的索引，不展开推断。
       - 某类素材今日不足时，直接写「今日无」，不要为凑数编造。
+      - **必须输出全部 5 个板块**（含最后的「申论话题索引」）。某一板块素材很多时，
+        按重要性挑选、控制条数，不要为了穷举而把后面的板块挤掉。
 
       ## 📌 时政热点与官方定调
       3-5 条。每条写：**事件或政策名（含文号）** + 官方口径要点 + 一句「可提炼论点」。
@@ -171,8 +173,8 @@ feeds:
       **适用**：一句话说明用在申论的什么位置（开头／结尾／分论点升华），以及适合哪类话题。
 
       ## 🧩 案例与数据素材
-      每条按「主体—做法—成效—启示」四要素展开，保留原文的具体数字、地名、单位名。
-      每条末尾另起一行写：**可迁移到**：话题A、话题B（2-4 个）。
+      **最多 12 条**，按代表性挑选。每条按「主体—做法—成效—启示」四要素展开，
+      保留原文的具体数字、地名、单位名。每条末尾另起一行写：**可迁移到**：话题A、话题B（2-4 个）。
 
       ## 🏷️ 申论话题索引
       把上述内容归入：基层治理／乡村振兴／生态环保／科技创新／文化自信／民生保障／法治建设／数字经济／对外开放／干部作风 等话题，每个话题下列出可用条目编号。
