@@ -228,6 +228,9 @@ feeds:
       - {id: gmw_theory, name: 光明网·理论, type: html, url: "https://theory.gmw.cn/", extra: {item: "div.bd ul > li a", base: "https://theory.gmw.cn", limit: 15, article: true}}
       - {id: byt_pinglun, name: 半月谈·评论, type: html, url: "http://www.banyuetan.org/byt/banyuetanpinglun/index.html", extra: {item: "ul.clearFix > li h3 a", limit: 15, article: true}}
       - {id: byt_jicengzhili, name: 半月谈·基层治理, type: html, url: "http://www.banyuetan.org/byt/jicengzhili/index.html", extra: {item: "ul.clearFix > li h3 a", limit: 15, article: true}}
+      # ── 广西本地（区考申论更看重本地案例与政策）──
+      - {id: gxzf_gxyw, name: 广西区政府·广西要闻, type: html, url: "http://www.gxzf.gov.cn/gxyw/", extra: {item: "ul.more-list li a", base: "http://www.gxzf.gov.cn/gxyw/", limit: 20, article: true}}
+      - {id: nanning_gov, name: 南宁市政府, type: html, url: "https://www.nanning.gov.cn/", extra: {item: 'div.home_main a[href*="/t67"]', base: "https://www.nanning.gov.cn/", limit: 20, article: true}}
       # 上观新闻（=解放日报，含文汇报时评）：静态 JSON，字段规整、不需要任何 header
       - {id: shobserver_yaowen, name: 上观·要闻, type: api, url: "https://www.shobserver.com/staticsg/data/web/section/42.json", extra: {path: "data.newsList", title: "title", date: "publishtime", date_kind: "epoch_ms", link_tpl: "https://www.shobserver.com/staticsg/res/html/web/newsDetail.html?id={id}&sid={sectionid}", limit: 25}}
       - {id: shobserver_pinglun, name: 上观·评论, type: api, url: "https://www.shobserver.com/staticsg/data/web/section/44.json", extra: {path: "data.newsList", title: "title", date: "publishtime", date_kind: "epoch_ms", link_tpl: "https://www.shobserver.com/staticsg/res/html/web/newsDetail.html?id={id}&sid={sectionid}", limit: 25}}
