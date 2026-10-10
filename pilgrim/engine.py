@@ -987,10 +987,11 @@ class FeedRunner:
 
         # 5. Push（合并推送模式下跳过单 feed 邮件）
         if self.feed.push_email and not skip_push:
-            # 底部「今日来源条目」列出全部，不截断（用户明确要求看全量）；
-            # 仍走 _balance_by_source 只为按来源轮转排序，不是为限流。
+            # 底部「今日来源条目」用【本次抓到的全部】all_items，而不是 digest_target。
+            # digest_target 是「相对上次的增量」——同一天重复运行（或手动跑过）时增量很小，
+            # 列表就只剩几十条，看不到当天全貌。列表要的是"今天有什么"，不是"比上次多什么"。
             html = self._build_html_email(
-                ai_report, _balance_by_source(digest_target, len(digest_target)))
+                ai_report, _balance_by_source(all_items, len(all_items)))
             subject = f"{self.feed.name} {datetime.now().strftime('%Y-%m-%d')}"
             self.push_email(subject, html)
 
