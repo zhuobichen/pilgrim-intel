@@ -1061,8 +1061,13 @@ class FeedRunner:
   </div>
   <div class="card">{digest_html or '<p>今日无内容</p>'}</div>
   <div class="card">
-    <div class="digest-h">📎 今日来源条目（{len(items)}）</div>
-    {''.join(rows)}
+    <details>
+      <summary style="cursor:pointer;font-size:15px;font-weight:700;color:#1f3a5f;
+                      border-left:4px solid #8a4b0f;padding:4px 0 4px 10px">
+        📎 今日来源条目（{len(items)}）· 点击展开
+      </summary>
+      {''.join(rows)}
+    </details>
   </div>
   <div class="ft">Pilgrim Intel · 自动生成 · 仅供个人备考</div>
 </div></body></html>"""
