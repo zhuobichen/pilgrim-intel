@@ -975,10 +975,11 @@ class FeedRunner:
         self.log(f"Stored: {stored} items")
 
         # 4. AI Digest
-        # 取材用【本次抓到的全部】all_items，不用 new_items 增量：
-        # 日报要回答"今天有什么"。用增量时，同一天重复运行会让摘要只剩几条
-        # （实测曾因此让 AI 只拿到 1 条素材，整份日报退化成单条评论的解读）。
-        digest_target = all_items
+        # 取材用【本次新增】new_items，避免日报里重复出现前几天已发过的内容
+        # （新闻频道的列表页会连续几天挂着同一条）。指纹去重是跨天的，
+        # 所以 new_items 天然就是"没推送过的"。正常每天只跑一次时新增≈当天全部；
+        # 只有同一天重复运行才会显著变少（那是调试场景，不是日常）。
+        digest_target = new_items if new_items else all_items
         ai_report = ""
         if self.ai and self.feed.prompt_template:
             self.log("AI digest generating...")
@@ -990,11 +991,10 @@ class FeedRunner:
 
         # 5. Push（合并推送模式下跳过单 feed 邮件）
         if self.feed.push_email and not skip_push:
-            # 底部「今日来源条目」用【本次抓到的全部】all_items，而不是 digest_target。
-            # digest_target 是「相对上次的增量」——同一天重复运行（或手动跑过）时增量很小，
-            # 列表就只剩几十条，看不到当天全貌。列表要的是"今天有什么"，不是"比上次多什么"。
+            # 底部「今日来源条目」与摘要同源，都只列【今天新增】——
+            # 否则前几天已发过的条目会天天重复出现。仍按来源轮转排序。
             html = self._build_html_email(
-                ai_report, _balance_by_source(all_items, len(all_items)))
+                ai_report, _balance_by_source(digest_target, len(digest_target)))
             subject = f"{self.feed.name} {datetime.now().strftime('%Y-%m-%d')}"
             self.push_email(subject, html)
 
@@ -1148,7 +1148,9 @@ def _markdown_to_html(md: str) -> str:
                 out.append("</ul>"); in_ul = False
             if not in_ol:
                 out.append("<ol>"); in_ol = True
-            out.append(f"<li>{m.group(2)}</li>")
+            # 列表项也要做行内粗体转换，否则 **加粗** 会原样露出星号
+            _li = _re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", m.group(2))
+            out.append(f"<li>{_li}</li>")
             continue
         # 无序列表
         m = _re.match(r"^\s*[-*•]\s+(.*)$", line)
@@ -1157,7 +1159,8 @@ def _markdown_to_html(md: str) -> str:
                 out.append("</ol>"); in_ol = False
             if not in_ul:
                 out.append("<ul>"); in_ul = True
-            out.append(f"<li>{m.group(1)}</li>")
+            _li = _re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", m.group(1))
+            out.append(f"<li>{_li}</li>")
             continue
         # 普通段落
         close_lists()
