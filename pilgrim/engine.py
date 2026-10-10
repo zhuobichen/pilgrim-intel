@@ -984,6 +984,7 @@ class FeedRunner:
         if self.ai and self.feed.prompt_template:
             self.log("AI digest generating...")
             ai_report = self.generate_digest(digest_target)
+            ai_report = _split_inline_fields(ai_report)   # 兜底：拆开挤在一行的字段
             # 生成后机器核对：把对不上出处的文号/数字显式标出来
             ai_report = _verify_digest(ai_report, digest_target)
         else:
@@ -1195,6 +1196,28 @@ def _balance_by_source(items: List[ContentItem], limit: int) -> List[ContentItem
                 if len(out) >= limit:
                     break
     return out
+
+
+_INLINE_FIELDS = ("主体", "做法", "成效", "启示", "可迁移到", "适用", "适合题型", "怎么用")
+
+
+def _split_inline_fields(text: str) -> str:
+    """兜底：模型偶尔不听 prompt，把「主体：… | 做法：… | 成效：…」挤在一行。
+
+    prompt 只能降低概率，这里把这种行拆成多行列表，保证版式一致。
+    只处理「同一行里出现 >=2 个已知字段名、且含 | 分隔」的行，不会误伤普通句子。
+    """
+    import re
+    out = []
+    for line in text.split("\n"):
+        hits = sum(1 for f in _INLINE_FIELDS if f + "：" in line or f + ":" in line)
+        if line.count("|") >= 1 and hits >= 2:
+            parts = [p.strip() for p in re.split(r"\s*\|\s*", line.strip()) if p.strip()]
+            for p in parts:
+                out.append(p if p.startswith("-") else "- " + p)
+        else:
+            out.append(line)
+    return "\n".join(out)
 
 
 def _verify_digest(report: str, items: List[ContentItem]) -> str:
