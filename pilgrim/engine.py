@@ -975,7 +975,10 @@ class FeedRunner:
         self.log(f"Stored: {stored} items")
 
         # 4. AI Digest
-        digest_target = new_items if new_items else all_items[:30]
+        # 取材用【本次抓到的全部】all_items，不用 new_items 增量：
+        # 日报要回答"今天有什么"。用增量时，同一天重复运行会让摘要只剩几条
+        # （实测曾因此让 AI 只拿到 1 条素材，整份日报退化成单条评论的解读）。
+        digest_target = all_items
         ai_report = ""
         if self.ai and self.feed.prompt_template:
             self.log("AI digest generating...")
