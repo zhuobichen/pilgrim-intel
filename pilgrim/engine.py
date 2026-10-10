@@ -1007,15 +1007,26 @@ class FeedRunner:
         """单 feed 邮件（standalone 频道用它）。版式面向「阅读/摘抄备考资料」：
         正文按 Markdown 渲染成 HTML（分区标题、金句引用框），而不是塞进 <pre>。"""
         digest_html = _markdown_to_html(ai_report)
-        rows = []
+        # 来源条目按「来源」分组：全量 700+ 条平铺时不好定位，分组后能按源快速检索
+        from collections import OrderedDict
+        grouped: "OrderedDict[str, list]" = OrderedDict()
         for item in items:
+            grouped.setdefault(item.source, []).append(item)
+        rows = []
+        for src, its in grouped.items():
+            lis = "".join(
+                f'<li style="margin:5px 0">'
+                f'<a href="{it.url}" style="color:#1f3a5f;text-decoration:none">'
+                f'{_escape_html(it.title)}</a></li>'
+                for it in its)
             rows.append(
-                f'<li style="margin:9px 0;padding-bottom:8px;border-bottom:1px dashed #e3ded4">'
-                f'<a href="{item.url}" style="color:#1f3a5f;font-weight:600;text-decoration:none">'
-                f'{_escape_html(item.title)}</a>'
-                f'<span style="color:#9a9285;font-size:12px"> · {_escape_html(item.source)}</span>'
-                f'</li>'
-            )
+                f'<div style="margin:14px 0 0">'
+                f'<div style="font-size:13.5px;font-weight:700;color:#8a4b0f;'
+                f'border-bottom:1px solid #efe7d8;padding-bottom:3px">'
+                f'{_escape_html(src)}'
+                f'<span style="color:#9a9285;font-weight:400">（{len(its)}）</span></div>'
+                f'<ul class="refs" style="list-style:none;margin:4px 0 0;padding:0">{lis}</ul>'
+                f'</div>')
         today = datetime.now().strftime('%Y-%m-%d')
         return f"""<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -1050,7 +1061,7 @@ class FeedRunner:
   <div class="card">{digest_html or '<p>今日无内容</p>'}</div>
   <div class="card">
     <div class="digest-h">📎 今日来源条目（{len(items)}）</div>
-    <ul class="refs" style="list-style:none;margin:0;padding:0">{''.join(rows)}</ul>
+    {''.join(rows)}
   </div>
   <div class="ft">Pilgrim Intel · 自动生成 · 仅供个人备考</div>
 </div></body></html>"""
