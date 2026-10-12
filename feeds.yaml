@@ -156,7 +156,7 @@ feeds:
       - 每一个具体数字、文号、地名、单位名，都必须出现在所给条目里；给不出出处的就不要写。
       - 只有标题、没有正文的条目，仅作标题层面的索引，不展开推断。
       - 某类素材今日不足时，直接写「今日无」，不要为凑数编造。
-      - **必须输出全部 8 个板块**（含最后的「申论话题索引」「申论考点对接」「广西专题」「今日汇总分析」）。
+      - **必须输出全部 7 个板块**（含最后的「申论话题索引」「申论考点对接」「今日汇总分析」）。
         某一板块素材很多时，按重要性挑选、控制条数，不要为了穷举而把后面的板块挤掉。
       - **素材充足时要把内容写足**：每条该有的背景、举措、数据都写清楚，
         不要为省字数而简略成一句话。宁可写长，也不要让读者觉得空洞。
@@ -198,16 +198,6 @@ feeds:
       - **可直接用的词句**：从今天的金句或政策表述里，挑 2-3 句能直接写进答案的，
         说明各放在哪个位置。
       素材不足以支撑时，宁可只写 1 个主题，也不要硬凑。
-
-      ## 🌏 广西专题（省考向）
-      只写**与广西有关**的内容：上文标了「【广西】」的条目，以及广西各级政府网站的条目
-      （广西区政府、南宁/桂林/柳州/防城港市政府）。
-      - **广西政策与要闻**：自治区与各地市的政策、会议、举措（点名条目）
-      - **广西案例素材**：可用于广西区考申论的本地案例，保留具体数字、地名、单位
-      - **备考提示**：这些内容在广西区考里可能怎么用。注意结合广西的实际议题
-        （面向东盟开放合作、西部陆海新通道、北部湾经济区、乡村振兴、边海防、
-        民族团结、文旅康养等）。
-      今天没有广西相关内容就写「今日无」——**不要拿全国性内容冒充广西内容**。
 
       ## 📊 今日汇总分析
       这一节是**分析**，不是罗列，要给出你自己的判断：
@@ -268,13 +258,61 @@ feeds:
       - {id: gmw_theory, name: 光明网·理论, type: html, url: "https://theory.gmw.cn/", extra: {item: "div.bd ul > li a", base: "https://theory.gmw.cn", limit: 15, article: true}}
       - {id: byt_pinglun, name: 半月谈·评论, type: html, url: "http://www.banyuetan.org/byt/banyuetanpinglun/index.html", extra: {item: "ul.clearFix > li h3 a", limit: 15, article: true}}
       - {id: byt_jicengzhili, name: 半月谈·基层治理, type: html, url: "http://www.banyuetan.org/byt/jicengzhili/index.html", extra: {item: "ul.clearFix > li h3 a", limit: 15, article: true}}
-      # ── 广西本地（区考申论更看重本地案例与政策）──
+      # 上观新闻（=解放日报，含文汇报时评）：静态 JSON，字段规整、不需要任何 header
+      - {id: shobserver_yaowen, name: 上观·要闻, type: api, url: "https://www.shobserver.com/staticsg/data/web/section/42.json", extra: {path: "data.newsList", title: "title", date: "publishtime", date_kind: "epoch_ms", link_tpl: "https://www.shobserver.com/staticsg/res/html/web/newsDetail.html?id={id}&sid={sectionid}", limit: 25}}
+      - {id: shobserver_pinglun, name: 上观·评论, type: api, url: "https://www.shobserver.com/staticsg/data/web/section/44.json", extra: {path: "data.newsList", title: "title", date: "publishtime", date_kind: "epoch_ms", link_tpl: "https://www.shobserver.com/staticsg/res/html/web/newsDetail.html?id={id}&sid={sectionid}", limit: 25}}
+      - {id: shobserver_sixiang, name: 上观·思想, type: api, url: "https://www.shobserver.com/staticsg/data/web/section/62.json", extra: {path: "data.newsList", title: "title", date: "publishtime", date_kind: "epoch_ms", link_tpl: "https://www.shobserver.com/staticsg/res/html/web/newsDetail.html?id={id}&sid={sectionid}", limit: 20}}
+
+  # ── 🌏 广西申论素材：省考向（单独一封邮件）────────────────
+  - id: guangxi
+    name: 广西申论素材
+    llm: {model: deepseek-chat, api_key_env: DEEPSEEK_API_KEY, api_base: "https://api.deepseek.com", temperature: 0.4, max_tokens: 16000}
+    push: {email: true, standalone: true, email_to: "${EMAIL_TO}"}
+    enrich: {article: true, per_source: 6, max_articles: 60, max_chars: 1000, concurrency: 8}
+    schedule: "daily 18:30"
+    enabled: true
+    prompt_template: |
+      你是广西公务员考试（区考）申论辅导专家。根据以下 {{COUNT}} 条广西本地时政内容，整理一份**广西区考申论素材日报**。只基于所给内容，不要编造。
+
+      【硬性要求】
+      - 只使用所给条目中**实际出现**的文字；文号、数据、地名、单位名都要能溯源。
+      - 条目里没有的内容不要补；某项今天没有就写「今日无」。
+      - 条目内多个要点要**分行**呈现（Markdown 列表），不要挤成一段或用 | 串起来。
+
+      ## 📌 广西要闻与政策
+      5-8 条。每条：**事件或政策名（含文号）** + 官方口径要点 + 一句「可提炼论点」。
+
+      ## 🧩 广西案例素材
+      最多 10 条，按代表性挑选。每条严格按分行格式：
+      **N. 案例标题**
+      - 主体：谁做的
+      - 做法：怎么做的（保留原文的具体数字、地名、单位名）
+      - 成效：结果如何（有数据就带数据）
+      - 启示：对区考申论有什么价值
+      - 可迁移到：话题A、话题B（2-4 个）
+
+      ## 💬 广西相关金句
+      3-6 条，每条用下面的格式：
+      > 金句原文
+      —— 来源媒体《文章标题》
+      **适用**：说明用在申论的什么位置、适合哪类话题
+
+      ## 🎯 区考考点对接
+      挑 2-3 个最可能成为广西区考考点的主题，逐个写：
+      - **可能考点**：通常怎么考（归纳概括／对策／综合分析／应用文／大作文）、可能从什么角度命题
+      - **答题思路**：点问题 → 析原因 → 提对策 → 升价值，每一步点名用今天哪条素材支撑
+      - **可直接用的词句**：挑 2-3 句能直接写进答案的，说明放哪个位置
+
+      ## 🏷️ 话题索引
+      按广西的重点议题归类：面向东盟开放合作／西部陆海新通道／北部湾经济区／乡村振兴／
+      生态文明／民族团结／边海防／文旅康养／基层治理／民生保障 等，每个话题下列出可用条目编号。
+
+      板块之间用 --- 分隔。
+
+      {{CONTEXT}}
+    sources:
       - {id: gxzf_gxyw, name: 广西区政府·广西要闻, type: html, url: "http://www.gxzf.gov.cn/gxyw/", extra: {item: "ul.more-list li a", base: "http://www.gxzf.gov.cn/gxyw/", limit: 20, article: true}}
       - {id: nanning_gov, name: 南宁市政府, type: html, url: "https://www.nanning.gov.cn/", extra: {item: 'div.home_main a[href*="/t67"]', base: "https://www.nanning.gov.cn/", limit: 20, article: true}}
       - {id: guilin_gov, name: 桂林市政府·要闻, type: html, url: "https://www.guilin.gov.cn/", extra: {item: 'a[href*="/ywdt/"]', base: "https://www.guilin.gov.cn/", limit: 20, article: true}}
       - {id: liuzhou_gov, name: 柳州市政府·政策, type: html, url: "http://www.liuzhou.gov.cn/", extra: {item: 'a[href*="/zcwj/"]', base: "http://www.liuzhou.gov.cn/", limit: 15, article: true}}
       - {id: fcgs_gov, name: 防城港市政府·要闻, type: html, url: "https://www.fcgs.gov.cn/zxzx/jrfcg/fcgyw/", extra: {item: 'a[href*="t28"]', base: "https://www.fcgs.gov.cn/zxzx/jrfcg/fcgyw/", limit: 20, article: true}}
-      # 上观新闻（=解放日报，含文汇报时评）：静态 JSON，字段规整、不需要任何 header
-      - {id: shobserver_yaowen, name: 上观·要闻, type: api, url: "https://www.shobserver.com/staticsg/data/web/section/42.json", extra: {path: "data.newsList", title: "title", date: "publishtime", date_kind: "epoch_ms", link_tpl: "https://www.shobserver.com/staticsg/res/html/web/newsDetail.html?id={id}&sid={sectionid}", limit: 25}}
-      - {id: shobserver_pinglun, name: 上观·评论, type: api, url: "https://www.shobserver.com/staticsg/data/web/section/44.json", extra: {path: "data.newsList", title: "title", date: "publishtime", date_kind: "epoch_ms", link_tpl: "https://www.shobserver.com/staticsg/res/html/web/newsDetail.html?id={id}&sid={sectionid}", limit: 25}}
-      - {id: shobserver_sixiang, name: 上观·思想, type: api, url: "https://www.shobserver.com/staticsg/data/web/section/62.json", extra: {path: "data.newsList", title: "title", date: "publishtime", date_kind: "epoch_ms", link_tpl: "https://www.shobserver.com/staticsg/res/html/web/newsDetail.html?id={id}&sid={sectionid}", limit: 20}}

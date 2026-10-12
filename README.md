@@ -70,7 +70,8 @@ Windows Task Scheduler: `PilgrimIntelDaily` → 每天 18:30 执行 `scripts/dai
 | trendradar | 10 | 新闻简报 |
 | gamehub | 15 | 游戏资讯日报 |
 | horizon | 18 | 科技新闻双语日报 |
-| shenlun | 37 | 考公申论时政素材（`standalone`：单独一封邮件，不并入合并日报） |
+| shenlun | 37 | 考公申论时政素材，全国向（`standalone`：单独一封邮件） |
+| guangxi | 5 | 广西区考申论素材（`standalone`：单独一封邮件） |
 
 ### shenlun 独立频道说明
 
