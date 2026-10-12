@@ -883,7 +883,8 @@ class FeedRunner:
         budget = int((self.feed.enrich or {}).get("context_chars", 300000))
         used = 0
         for i, item in enumerate(_balance_by_source(items, 300), 1):
-            block = [f"{i}. [{item.source}] {item.title}",
+            tag = "  【广西】" if _is_guangxi(item) else ""
+            block = [f"{i}. [{item.source}] {item.title}{tag}",
                      f"   链接: {item.url}"]
             d = item.extra or {}
             meta = " | ".join(x for x in (
@@ -1199,6 +1200,25 @@ def _balance_by_source(items: List[ContentItem], limit: int) -> List[ContentItem
 
 
 _INLINE_FIELDS = ("主体", "做法", "成效", "启示", "可迁移到", "适用", "适合题型", "怎么用")
+
+# 广西相关关键词：用于在给模型的素材里标出省考向的内容。
+# 注意别放"自治区"——国务院文件抬头都写着"各省、自治区、直辖市人民政府"，
+# 会把大量中央文件误标成广西相关（实测错标了几十条）。
+_GX_WORDS = ("广西", "南宁", "桂林", "柳州", "钦州", "北海", "防城港", "玉林", "百色",
+             "河池", "贵港", "梧州", "来宾", "崇左", "贺州", "北部湾", "壮族")
+
+
+def _is_guangxi(item) -> bool:
+    """判断这条是否属于广西本地内容。
+
+    只看**标题与来源**，不看正文摘录——正文里顺带提一句"广西"（比如
+    "武网女单"的赛况里提到某选手是广西人）不该整条被算作广西内容，
+    实测那样会把几十条全国新闻误标进来。
+    """
+    ex = item.extra or {}
+    blob = " ".join([item.title or "", item.source or "",
+                     str(ex.get("issuer", "")), str(ex.get("topic", ""))])
+    return any(w in blob for w in _GX_WORDS)
 
 
 def _split_inline_fields(text: str) -> str:
