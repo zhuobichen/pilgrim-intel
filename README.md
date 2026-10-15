@@ -72,6 +72,7 @@ Windows Task Scheduler: `PilgrimIntelDaily` → 每天 18:30 执行 `scripts/dai
 | horizon | 18 | 科技新闻双语日报 |
 | shenlun | 37 | 考公申论时政素材，全国向（`standalone`：单独一封邮件） |
 | guangxi | 5 | 广西区考申论素材（`standalone`：单独一封邮件） |
+| tiku | 2 | 每日一练：机构发的行测/时政题，**答案用 `<details>` 折叠** |
 
 ### shenlun 独立频道说明
 

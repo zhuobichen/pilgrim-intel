@@ -316,3 +316,58 @@ feeds:
       - {id: guilin_gov, name: 桂林市政府·要闻, type: html, url: "https://www.guilin.gov.cn/", extra: {item: 'a[href*="/ywdt/"]', base: "https://www.guilin.gov.cn/", limit: 20, article: true}}
       - {id: liuzhou_gov, name: 柳州市政府·政策, type: html, url: "http://www.liuzhou.gov.cn/", extra: {item: 'a[href*="/zcwj/"]', base: "http://www.liuzhou.gov.cn/", limit: 15, article: true}}
       - {id: fcgs_gov, name: 防城港市政府·要闻, type: html, url: "https://www.fcgs.gov.cn/zxzx/jrfcg/fcgyw/", extra: {item: 'a[href*="t28"]', base: "https://www.fcgs.gov.cn/zxzx/jrfcg/fcgyw/", limit: 20, article: true}}
+
+  # ── 📝 每日一练：机构当天发的题目（单独一封邮件）────────
+  - id: tiku
+    name: 每日一练
+    llm: {model: deepseek-chat, api_key_env: DEEPSEEK_API_KEY, api_base: "https://api.deepseek.com", temperature: 0.3, max_tokens: 16000}
+    push: {email: true, standalone: true, email_to: "${EMAIL_TO}"}
+    enrich: {article: true, per_source: 6, max_articles: 14, max_chars: 2500, concurrency: 6}
+    schedule: "daily 18:30"
+    enabled: true
+    prompt_template: |
+      你是公务员考试辅导老师。下面是抓到的**练习题原文**，请整理成一份**每日一练**。
+
+      【硬性要求】
+      - **题干与选项必须原文照抄**，一个字都不要改，也不要顺手"修正"。
+      - 题干里的填空（如 ________）保留原样。
+      - 题目与答案解析**可能来自不同文章**，请自行配对。
+      - 答案：原文给了就照抄；原文没给就自己作答，但必须标注「（AI 作答，非原文）」，
+        不要冒充官方答案。
+      - 去掉站点噪声（"进入阅读模式""加微信""点我咨询""分享到"、机构广告、"责任编辑"等）。
+
+      ## 📝 今日练习题
+      **每道题后面紧跟它自己的答案折叠块**——不要把答案攒到最后一起放。
+      格式必须是这样（逐题重复）：
+
+      **第 N 题（模块：数量关系／资料分析／判断推理／言语理解／常识判断）**
+      - 题干（原文照抄）
+      - A. …
+      - B. …
+      - C. …
+      - D. …
+
+      <details><summary>查看答案与解析</summary>
+
+      答案：X
+      解析：…
+
+      </details>
+
+      **第 N+1 题** …（同样，题目后面紧跟它自己的 <details> 块）
+
+      ## 🎯 考点提示
+      每道题一两句：考哪个知识点、真题里通常怎么考、有什么快速解法。
+
+      ## 📌 相关时政
+      题目涉及的时政事件，便于顺带复习。
+
+      今天没抓到题目就只写「今日无」。
+
+      {{CONTEXT}}
+    sources:
+      # 每天更新：时政题（含答案）
+      - {id: offcn_szzz, name: 中公·时政每日一练, type: html, url: "http://www.offcn.com/tag/52.html", extra: {item: 'a[href*="/gwy/"]', match: "每日一练", base: "http://www.offcn.com", limit: 3, article: true, article_sel: "div.lh_article"}}
+      # 行测题库（题目 + 答案解析分两篇，含数量关系/资料分析/判断推理）
+      # 华图每日一练（按模块：数量关系/资料分析/判断推理…）
+      - {id: huatu_mryl, name: 华图·每日一练, type: html, url: "https://m.huatu.com/gwy/ziliao/xc/yylj/", extra: {item: 'a[href*="huatu.com/20"]', match: "每日一练", base: "https://m.huatu.com", limit: 6, article: true}}

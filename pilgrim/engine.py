@@ -247,6 +247,7 @@ class FeedRunner:
             return []
         limit = int(extra.get("limit", 20))
         min_len = int(extra.get("min_len", 6))
+        match_re = extra.get("match") or ""   # 可选：只保留标题命中该正则的条目
         items: List[ContentItem] = []
         try:
             import lxml.html
@@ -290,6 +291,9 @@ class FeedRunner:
                 t = _re.sub(r"\s+", " ", t).strip()
                 href = (a.get("href") or "").strip()
                 if len(t) < min_len or not href or href.startswith(("javascript:", "#")):
+                    continue
+                # match：只保留标题命中该正则的条目（例如从综合 tag 页里只挑「每日一练」）
+                if match_re and not _re.search(match_re, t):
                     continue
                 items.append(ContentItem(title=t, url=urljoin(base, href),
                                          source=src.name, feed_id=self.feed.id))
@@ -1170,7 +1174,13 @@ def _markdown_to_html(md: str) -> str:
         inline = _re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", line)
         out.append(f"<p>{inline}</p>")
     close_lists()
-    return "\n".join(out)
+    html = "\n".join(out)
+    # 白名单放行折叠标签：<details>/<summary> 会被 _escape_html 转义掉，
+    # 这里还原回来，好让练习题答案可以折叠（不支持的客户端会照常展开，不丢内容）。
+    for _t in ("details", "summary"):
+        html = (html.replace(f"&lt;{_t}&gt;", f"<{_t}>")
+                    .replace(f"&lt;/{_t}&gt;", f"</{_t}>"))
+    return html
 
 
 def _balance_by_source(items: List[ContentItem], limit: int) -> List[ContentItem]:
