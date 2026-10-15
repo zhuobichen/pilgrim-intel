@@ -371,3 +371,6 @@ feeds:
       # 行测题库（题目 + 答案解析分两篇，含数量关系/资料分析/判断推理）
       # 华图每日一练（按模块：数量关系/资料分析/判断推理…）
       - {id: huatu_mryl, name: 华图·每日一练, type: html, url: "https://m.huatu.com/gwy/ziliao/xc/yylj/", extra: {item: 'a[href*="huatu.com/20"]', match: "每日一练", base: "https://m.huatu.com", limit: 6, article: true}}
+      # 成公有道公开题池：按日期抽真题（含计算类，带解析）
+      - {id: cgyd_quant, name: 成公有道·数量关系, type: quizapi, url: "https://www.chenggongyoudao.com/gwy-exam/quiz-api.php", extra: {bank: quant, n: 5}}
+      - {id: cgyd_data, name: 成公有道·资料分析, type: quizapi, url: "https://www.chenggongyoudao.com/gwy-exam/quiz-api.php", extra: {bank: data, n: 3}}

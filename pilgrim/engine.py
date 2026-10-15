@@ -365,6 +365,64 @@ class FeedRunner:
                                    feed_id=self.feed.id, published_at=pub))
         return out[:int(ex.get("limit", 20))]
 
+    async def _fetch_quizapi(self, src) -> List[ContentItem]:
+        """成公有道题库接口（公开 JSON、免登录）——按日期从题池抽题。
+
+        接口：
+          quiz-api.php?m=<bank>&meta=1              取模块与总数
+          quiz-api.php?m=<bank>&s=<subId>&ids=1,2,3 取题
+        bank：quant=数量关系 / data=资料分析。
+
+        用当天日期做随机种子：同一天多次运行抽到同一批（幂等、不会重复推送），
+        换一天抽不同的题。题库是"池内轮换"，不是每天入库新题。
+        """
+        import hashlib
+        import random
+        ex = src.extra or {}
+        bank = ex.get("bank", "quant")
+        n = int(ex.get("n", 5))
+        items: List[ContentItem] = []
+        try:
+            async with httpx.AsyncClient(timeout=25, follow_redirects=True, headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36",
+            }) as c:
+                meta = (await c.get(src.url, params={"m": bank, "meta": "1"})).json()
+                total = int(meta.get("total") or 0)
+                subs = meta.get("subcategories") or []
+                if not total or not subs:
+                    self.log(f"QUIZ {src.name}: meta 为空")
+                    return []
+                seed = int(hashlib.md5(
+                    datetime.now().strftime("%Y%m%d").encode()).hexdigest()[:8], 16)
+                rnd = random.Random(seed)
+                ids = sorted(rnd.sample(range(1, total + 1), min(n, total)))
+                data = (await c.get(src.url, params={
+                    "m": bank, "s": subs[0].get("id"),
+                    "ids": ",".join(map(str, ids))})).json()
+
+            qs = data.get("questions") or []
+            if not qs:
+                return []
+            blocks = []
+            for i, q in enumerate(qs, 1):
+                opts = q.get("options") or []
+                opt_lines = "\n".join(
+                    f"{chr(65 + j)}. {o}" for j, o in enumerate(opts) if str(o).strip())
+                blocks.append(
+                    f"第{i}题：{str(q.get('question', '')).strip()}\n{opt_lines}\n"
+                    f"【答案】{q.get('answer', '')}\n【解析】{str(q.get('analysis') or '').strip()}")
+            module = meta.get("module") or bank
+            items.append(ContentItem(
+                title=f"行测·{module}每日一练（{datetime.now().strftime('%Y-%m-%d')}）",
+                url="https://www.chenggongyoudao.com/gwy-exam/daily-practice.html",
+                source=src.name, feed_id=self.feed.id,
+                summary="\n\n".join(blocks)[:6000],
+                extra={"module": module, "count": len(qs)},
+            ))
+        except Exception as e:
+            self.log(f"QUIZ {src.name}: {type(e).__name__}: {str(e)[:60]}")
+        return items
+
     async def _fetch_cenews(self, src) -> List[ContentItem]:
         """中国环境报（中国环境网）内容接口 JSON。
 
@@ -745,6 +803,8 @@ class FeedRunner:
             return await self._fetch_cctv(src)
         elif src.type == "cenews":
             return await self._fetch_cenews(src)
+        elif src.type == "quizapi":
+            return await self._fetch_quizapi(src)
         elif src.type in ("hotlist", "api"):
             return await self._fetch_json(src)
         return []
