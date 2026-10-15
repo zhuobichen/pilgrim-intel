@@ -365,6 +365,76 @@ class FeedRunner:
                                    feed_id=self.feed.id, published_at=pub))
         return out[:int(ex.get("limit", 20))]
 
+    async def _fetch_localtiku(self, src) -> List[ContentItem]:
+        """从本地题库 JSON 抽题（data/tiku/*.json，来源见 extra.file）。
+
+        题库字段：id / source / module / difficulty / stem / options / answer / analysis。
+        用当天日期做种子：同一天抽同一批（幂等），换天换题。
+        extra：file=文件名、module=模块名、n=抽几题。
+        """
+        import hashlib
+        import json as _json
+        import random
+        ex = src.extra or {}
+        fname = ex.get("file")
+        module = ex.get("module")
+        n = int(ex.get("n", 5))
+        items: List[ContentItem] = []
+        path = HERE / "data" / "tiku" / str(fname)
+        if not path.exists():
+            self.log(f"TIKU {src.name}: 题库文件不存在 {path}")
+            return []
+        try:
+            data = _json.loads(path.read_text(encoding="utf-8"))
+            pool = data if isinstance(data, list) else (
+                data.get("questions") or data.get("data") or [])
+            if module:
+                pool = [q for q in pool if q.get("module") == module]
+            if not pool:
+                self.log(f"TIKU {src.name}: 题库为空（module={module}）")
+                return []
+            seed = int(hashlib.md5(
+                (datetime.now().strftime("%Y%m%d") + str(fname)).encode()).hexdigest()[:8], 16)
+            rnd = random.Random(seed)
+
+            # 抽过的题不再抽——记录在 .used-<file>.json，抽完一轮才重置
+            used_path = path.with_name(f".used-{module or 'all'}.json")
+            used = set()
+            if used_path.exists():
+                try:
+                    used = set(_json.loads(used_path.read_text(encoding="utf-8")))
+                except Exception:
+                    used = set()
+            fresh = [q for q in pool if str(q.get("id")) not in used]
+            if len(fresh) < n:          # 一轮抽完了，重置后重来
+                used = set()
+                fresh = list(pool)
+            picked = rnd.sample(fresh, min(n, len(fresh)))
+            try:
+                used |= {str(q.get("id")) for q in picked}
+                used_path.write_text(_json.dumps(sorted(used)), encoding="utf-8")
+            except Exception:
+                pass
+            blocks = []
+            for i, q in enumerate(picked, 1):
+                opts = q.get("options") or []
+                opt_lines = "\n".join(
+                    f"{chr(65 + j)}. {o}" for j, o in enumerate(opts) if str(o).strip())
+                src_tag = f"（{q.get('source')}）" if q.get("source") else ""
+                blocks.append(
+                    f"第{i}题{src_tag}：{str(q.get('stem', '')).strip()}\n{opt_lines}\n"
+                    f"【答案】{q.get('answer', '')}\n【解析】{str(q.get('analysis') or '').strip()}")
+            items.append(ContentItem(
+                title=f"行测·{module or '综合'}每日一练（{datetime.now().strftime('%Y-%m-%d')}）",
+                url="",
+                source=src.name, feed_id=self.feed.id,
+                summary="\n\n".join(blocks)[:7000],
+                extra={"module": module, "count": len(picked)},
+            ))
+        except Exception as e:
+            self.log(f"TIKU {src.name}: {type(e).__name__}: {str(e)[:60]}")
+        return items
+
     async def _fetch_quizapi(self, src) -> List[ContentItem]:
         """成公有道题库接口（公开 JSON、免登录）——按日期从题池抽题。
 
@@ -805,6 +875,8 @@ class FeedRunner:
             return await self._fetch_cenews(src)
         elif src.type == "quizapi":
             return await self._fetch_quizapi(src)
+        elif src.type == "localtiku":
+            return await self._fetch_localtiku(src)
         elif src.type in ("hotlist", "api"):
             return await self._fetch_json(src)
         return []

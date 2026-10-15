@@ -374,3 +374,6 @@ feeds:
       # 成公有道公开题池：按日期抽真题（含计算类，带解析）
       - {id: cgyd_quant, name: 成公有道·数量关系, type: quizapi, url: "https://www.chenggongyoudao.com/gwy-exam/quiz-api.php", extra: {bank: quant, n: 5}}
       - {id: cgyd_data, name: 成公有道·资料分析, type: quizapi, url: "https://www.chenggongyoudao.com/gwy-exam/quiz-api.php", extra: {bank: data, n: 3}}
+      # 本地题库（GitHub 开源，仅供个人学习）：抽过的题不再抽，一轮抽完自动重置
+      - {id: local_gk_sl, name: 本地题库·数量关系, type: localtiku, extra: {file: guokao-xingce.json, module: 数量关系, n: 4}}
+      - {id: local_gk_zl, name: 本地题库·资料分析, type: localtiku, extra: {file: guokao-xingce.json, module: 资料分析, n: 3}}
