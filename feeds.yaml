@@ -6,7 +6,7 @@ feeds:
     name: 综合日报
     llm: {model: deepseek-chat, api_key_env: DEEPSEEK_API_KEY, api_base: "https://api.deepseek.com", temperature: 0.85, max_tokens: 8000}
     push: {email: true, email_to: "${EMAIL_TO}"}
-    schedule: "daily 18:30"
+    schedule: "daily 14:00"
     enabled: true
     prompt_template: |
       你是国内社会文化观察家。根据以下 {{COUNT}} 条中文互联网热点，撰写一份有深度的中文日报。只基于提供的内容进行分析，不要编造。
@@ -33,7 +33,7 @@ feeds:
     name: 新闻速报
     llm: {model: deepseek-chat, api_key_env: DEEPSEEK_API_KEY, api_base: "https://api.deepseek.com", temperature: 0.5, max_tokens: 6000}
     push: {email: true, email_to: "${EMAIL_TO}"}
-    schedule: "daily 18:32"
+    schedule: "daily 14:00"
     enabled: true
     prompt_template: |
       你是资深国际新闻编辑。根据以下 {{COUNT}} 条来自全球主流媒体的当日新闻，写一份严肃专业的国际新闻简报。只基于提供的内容，不要编造。
@@ -63,7 +63,7 @@ feeds:
     name: 游戏日报
     llm: {model: deepseek-chat, api_key_env: DEEPSEEK_API_KEY, api_base: "https://api.deepseek.com", temperature: 0.6, max_tokens: 6000}
     push: {email: true, email_to: "${EMAIL_TO}"}
-    schedule: "daily 18:34"
+    schedule: "daily 14:00"
     enabled: true
     prompt_template: |
       你是资深游戏编辑。根据以下 {{COUNT}} 条全球游戏资讯，写一份充实的日报。只基于提供的内容。
@@ -99,7 +99,7 @@ feeds:
     name: 科技日报
     llm: {model: deepseek-chat, api_key_env: DEEPSEEK_API_KEY, api_base: "https://api.deepseek.com", temperature: 0.3, max_tokens: 8000}
     push: {email: true, email_to: "${EMAIL_TO}"}
-    schedule: "daily 18:36"
+    schedule: "daily 14:00"
     enabled: true
     prompt_template: |
       你是资深技术编辑。根据以下 {{COUNT}} 条全球科技新闻，撰写全面深入的中英双语技术日报。只基于提供的内容。
@@ -144,7 +144,7 @@ feeds:
     # 正文增强：只对标记了 extra.article 的源抓正文，每源最多 6 篇、每篇留 900 字。
     # 列表页只给标题，正文才是「具体政策举措 / 评论原句」的来源。
     enrich: {article: true, per_source: 8, max_articles: 250, max_chars: 1000, concurrency: 12}
-    schedule: "daily 18:30"
+    schedule: "daily 14:00"
     enabled: true
     prompt_template: |
       你是公务员考试申论辅导专家。根据以下 {{COUNT}} 条来自中国官方媒体与政府网站的当日内容（含正文摘录），整理一份申论时政素材日报。
@@ -269,7 +269,7 @@ feeds:
     llm: {model: deepseek-chat, api_key_env: DEEPSEEK_API_KEY, api_base: "https://api.deepseek.com", temperature: 0.4, max_tokens: 16000}
     push: {email: true, standalone: true, email_to: "${EMAIL_TO}"}
     enrich: {article: true, per_source: 6, max_articles: 60, max_chars: 1000, concurrency: 8}
-    schedule: "daily 18:30"
+    schedule: "daily 14:00"
     enabled: true
     prompt_template: |
       你是广西公务员考试（区考）申论辅导专家。根据以下 {{COUNT}} 条广西本地时政内容，整理一份**广西区考申论素材日报**。只基于所给内容，不要编造。
@@ -323,7 +323,7 @@ feeds:
     llm: {model: deepseek-chat, api_key_env: DEEPSEEK_API_KEY, api_base: "https://api.deepseek.com", temperature: 0.3, max_tokens: 16000}
     push: {email: true, standalone: true, email_to: "${EMAIL_TO}"}
     enrich: {article: true, per_source: 6, max_articles: 14, max_chars: 2500, concurrency: 6}
-    schedule: "daily 18:30"
+    schedule: "daily 14:00"
     enabled: true
     prompt_template: |
       你是公务员考试辅导老师。下面是抓到的**练习题原文**，请整理成一份**每日一练**。

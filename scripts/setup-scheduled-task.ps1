@@ -4,7 +4,7 @@ $description = "Pilgrim Intel — AI News Aggregation (abstract-culture + trendr
 Unregister-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue -Confirm:$false
 
 $batPath = Join-Path $PSScriptRoot "daily-run.bat"
-$trigger = New-ScheduledTaskTrigger -Daily -At 18:30
+$trigger = New-ScheduledTaskTrigger -Daily -At 14:00
 $action = New-ScheduledTaskAction -Execute $batPath
 $settings = New-ScheduledTaskSettingsSet `
     -AllowStartIfOnBatteries `
@@ -16,5 +16,5 @@ $settings = New-ScheduledTaskSettingsSet `
 $principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive
 Register-ScheduledTask -TaskName $taskName -Trigger $trigger -Action $action -Settings $settings -Principal $principal -Description $description -Force
 
-Write-Host "OK: PilgrimIntelDaily at 18:30"
+Write-Host "OK: PilgrimIntelDaily at 14:00"
 Get-ScheduledTask -TaskName $taskName | Format-List TaskName, State, NextRunTime
